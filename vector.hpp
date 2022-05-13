@@ -7,7 +7,7 @@ class vector_base {
 };
 
 template <typename T, typename Allocator = std::allocator<T> >
-class vector {
+class vector : public vector_base {
  public:
   // member types
   typedef T value_type;
