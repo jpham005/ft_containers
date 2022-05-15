@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iterator>
+
 namespace ft {
   template <typename Iterator>
   class iterator_traits {
@@ -24,7 +26,7 @@ namespace ft {
   template <typename T>
   class iterator_traits<const T*> {
     public:
-      typedef random_access_iterator_tag iterator_category;
+      typedef std::random_access_iterator_tag iterator_category;
       typedef T value_type;
       typedef ptrdiff_t difference_type;
       typedef const T* pointer;
@@ -35,11 +37,11 @@ namespace ft {
   class reverse_iterator {
     public:
       typedef Iterator iterator_type;
-      typedef iterator_traits<Iterator>::iterator_category iterator_category;
-      typedef iterator_traits<Iterator>::value_type value_type;
-      typedef iterator_traits<Iterator>::difference_type difference_type;
-      typedef iterator_traits<Iterator>::pointer pointer;
-      typedef iterator_traits<Iterator>::reference reference;
+      typedef typename iterator_traits<Iterator>::iterator_category iterator_category;
+      typedef typename iterator_traits<Iterator>::value_type value_type;
+      typedef typename iterator_traits<Iterator>::difference_type difference_type;
+      typedef typename iterator_traits<Iterator>::pointer pointer;
+      typedef typename iterator_traits<Iterator>::reference reference;
 
       reverse_iterator();
       explicit reverse_iterator(iterator_type it);
@@ -48,9 +50,7 @@ namespace ft {
 
       iterator_type base() const;
 
-      reference opeator*() const;
-      reverse_iterator operator+(difference_type n) const;
-      
+      reference operator*() const;
 
     private:
       iterator_type it_;
@@ -66,4 +66,7 @@ namespace ft {
 
   template <typename Iterator>
   reverse_iterator<Iterator>::iterator_type reverse_iterator<Iterator>::base() const { return it_; }
+
+  template <typename Iterator>
+  typename reverse_iterator<Iterator>::reference reverse_iterator<Iterator>::operator*() const { return *it_; }
 }
