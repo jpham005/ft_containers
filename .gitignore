@@ -1,6 +1,6 @@
 .vscode
-EASTL
 a.out
 *.o
 ft_containers
 .idea
+libcxx
