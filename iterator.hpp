@@ -20,15 +20,17 @@ namespace ft {
     static const bool value = sizeof(test<T>(0, 0, 0, 0, 0)) == 1;
   };
 
-  template <typename T>
-  struct has_iterator_category {
-  private:
-    struct two {char lx; char lxx;};
-    template <typename up> static two test(...);
-    template <typename up> static char test(typename up::iterator_category* = 0);
-  public:
-    static const bool value = sizeof(test<T>(0)) == 1;
-  };
+//  template <typename T>
+//  struct has_iterator_category {
+//  private:
+//    struct two {char lx; char lxx;};
+//    template <typename up> static two test(...);
+//    template <typename up> static char test(typename up::iterator_category* = 0);
+//  public:
+//    static const bool value = sizeof(test<T>(0)) == 1;
+//  };
+
+  template <typename Iter, bool> struct iterator_traits_impl {};
 
   template <typename Iter>
   struct iterator_traits_impl<Iter, true> {
@@ -39,26 +41,8 @@ namespace ft {
     typedef typename Iter::reference reference;
   };
 
-  template <typename Iter, bool> struct iterator_traits {};
-
   template <typename Iter>
-  struct iterator_traits<Iter, true>
-    : iterator_traits_impl
-    <
-      Iter,
-      std::is_convertible<typename Iter::iterator_category, std::input_iterator_tag>::value ||
-      std::is_convertible<typename Iter::iterator_category, std::output_iterator_tag>::value
-    >
-  {};
-
-  template <typename Iter>
-  struct iterator_traits<Iter, true> {
-    typedef typename Iter::iterator_category iterator_category;
-    typedef typename Iter::value_type value_type;
-    typedef typename Iter::difference_type difference_type;
-    typedef typename Iter::pointer pointer;
-    typedef typename Iter::reference reference;
-  };
+  struct iterator_traits : iterator_traits_impl<Iter, has_iterator_typedefs<Iter>::value> {};
 
   template <typename T>
   struct iterator_traits<T*> {
@@ -78,20 +62,22 @@ namespace ft {
     typedef const T& reference;
   };
 
+  // is ___ iterator
+
   template <typename Iter>
   class reverse_iterator {
   public:
-    typedef Iter iterator_type;
+    typedef Iter                                              iterator_type;
     typedef typename iterator_traits<Iter>::iterator_category iterator_category;
-    typedef typename iterator_traits<Iter>::value_type value_type;
-    typedef typename iterator_traits<Iter>::difference_type difference_type;
-    typedef typename iterator_traits<Iter>::pointer pointer;
-    typedef typename iterator_traits<Iter>::reference reference;
+    typedef typename iterator_traits<Iter>::value_type        value_type;
+    typedef typename iterator_traits<Iter>::difference_type   difference_type;
+    typedef typename iterator_traits<Iter>::pointer           pointer;
+    typedef typename iterator_traits<Iter>::reference         reference;
 
     reverse_iterator() : it_() {}
     explicit reverse_iterator(iterator_type it) : it_(it) {}
-    template <typename Iter>
-    explicit reverse_iterator(const reverse_iterator<Iter>& rev_it) : it_(rev_it.base()) {}
+    template <typename rev_iter>
+    explicit reverse_iterator(const reverse_iterator<rev_iter>& rev_it) : it_(rev_it.base()) {}
 
     iterator_type base() const { return it_; }
 

@@ -1,7 +1,7 @@
 NAME        :=  ft_containers
 
 CXX         :=  c++
-CXXFLAGS    :=  -std=c++98 -Wall -Wextra -Werror -pedantic
+CXXFLAGS    :=  -std=c++98 -Wall -Wextra -Werror -pedantic -fsanitize=undefined
 
 CLASS       :=
 INTERFACE   :=

@@ -14,5 +14,7 @@ namespace ft {
   };
 
   template <typename T>
-  struct is_valid { typedef void type; };
+  struct is_valid {
+    typedef void type;
+  };
 }
