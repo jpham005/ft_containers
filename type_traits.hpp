@@ -13,8 +13,19 @@ namespace ft {
     value_type type;
   };
 
-  template <typename T>
+  template <typename>
   struct is_valid {
     typedef void type;
+  };
+
+  template <typename T, typename U>
+  struct is_convertible {
+  private:
+    struct two { char _lx; char _lxx; };
+    static two test(...);
+    static char test(U u);
+
+  public:
+    static const bool value = sizeof(test(T())) == 1;
   };
 }

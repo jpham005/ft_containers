@@ -22,30 +22,56 @@ void test(Iter i1, typename ft::enable_if<ft::iterator_traits<Iter>::iterator_ca
   (void)i2;
 }
 
+char test(char a);
+int test2(int a);
+
 int main() {
-  ft::vector<int> v(static_cast<std::size_t>(5), 4);
-
+  std::vector<int> origin;
+  origin.push_back(1);
+  origin.push_back(2);
+  origin.push_back(3);
+  origin.push_back(4);
+  ft::vector<int> v(4, 4);
+  v.assign(origin.begin(), origin.end());
   typedef ft::vector<int>::iterator iter;
-  for (iter i = v.begin(); i != v.end(); i++) {
-    std::cout << *i << std::endl;
-  }
+  iter i = v.begin();
+  v.insert(i, 10);
+  for (iter a = v.begin(); a != v.end(); ++a)
+    std::cout << *a << std::endl;
 
-  typedef ft::vector<int>::reverse_iterator riter;
-//  for (riter i = v.rbegin(); i != v.rend(); ++i) {
-//    std::cout << *i << std::endl;
+  ft::vector<int> cp = v;
+
+  for (iter b = cp.begin(); b != cp.end(); ++b)
+    std::cout << *b << std::endl;
+
+//  for (std::size_t i = 0; i < 5; ++i) v[i] = i;
+//
+//  std::cout << v[2] << std::endl;
+//  std::cout << v.at(2) << std::endl;
+//  std::cout << v.front() << std::endl;
+//  std::cout << v.back() << std::endl;
+//  std::cout << *(v.data()) << std::endl;
+//
+//  std::vector<int> vec;
+//  for (int i = 0; i < 10; ++i) {
+//    vec.push_back(i + 10);
 //  }
-  riter i = v.rbegin();
-  std::cout << *i << std::endl;
+//
+//  ft::vector<int> cp = v;
+//
+//  v.assign(vec.begin(), vec.end());
+//  typedef ft::vector<int>::iterator iter;
+//
+//  for (iter i = v.begin(); i != v.end(); ++i)
+//    std::cout << *i << std::endl;
+//
+//  for (iter i = cp.begin(); i != cp.end(); ++i)
+//    std::cout << *i << std::endl;
+//
+//  //  v.assign(1, 1); //TODO
+//  v.assign(static_cast<std::size_t>(1), 1);
+//  for (iter i = v.begin(); i != v.end(); ++i)
+//    std::cout << *i << std::endl;
 
-  std::cout << "===============" << std::endl;
-
-  const ft::vector<int>& cp = const_cast<const ft::vector<int>& >(v);
-  typedef ft::vector<int>::const_reverse_iterator criter;
-
-  criter cri = cp.rbegin();
-  std::cout << *cri << std::endl;
-
-  if (cri != i)
-    return 0;
 
 }
