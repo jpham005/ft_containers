@@ -4,3 +4,5 @@ a.out
 ft_containers
 .idea
 libcxx
+containers_test
+a.out.dSYM

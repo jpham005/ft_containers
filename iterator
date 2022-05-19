@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iterator>
-#include "type_traits.hpp"
+#include "type_traits"
 
 namespace ft {
   template <typename T>
