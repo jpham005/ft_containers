@@ -7,7 +7,7 @@ CLASS       :=
 INTERFACE   :=
 TEMPLATE    :=  pair
 
-SRCS        :=  vector_test.cpp $(addsuffix .cpp, $(CLASS))
+SRCS        :=  stack_test.cpp $(addsuffix .cpp, $(CLASS))
 OBJS        :=  $(SRCS:.cpp=.o)
 
 INCLUDES    :=  $(addsuffix .hpp, $(CLASS)) $(addsuffix .hpp, $(INTERFACE)) \
