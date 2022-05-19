@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <memory>
 
-#include "algorithm"
-#include "iterator"
-#include "utility"
+#include "algorithm.hpp"
+#include "iterator.hpp"
+#include "utility.hpp"
 
 namespace ft {
   template <typename T, typename Allocator = std::allocator<T> >
@@ -24,10 +24,15 @@ namespace ft {
     typedef typename std::ptrdiff_t                   difference_type;
     typedef typename std::size_t                      size_type;
 
-    explicit vector() : alloc_(allocator_type()), cap_(0), begin_(NULL), end_(NULL) {}
+    vector() : alloc_(allocator_type()), cap_(0), begin_(NULL), end_(NULL) {}
 
-    explicit vector(size_type count, const_reference value)
-      : alloc_(allocator_type()), cap_(count), begin_(this->alloc_.allocate(count)), end_(this->begin_ + count) {
+    explicit vector(const allocator_type& alloc) : alloc_(alloc()), cap_(0), begin_(NULL), end_(NULL) {}
+
+    explicit vector(
+      size_type count,
+      const_reference value = value_type(),
+      const allocator_type alloc = allocator_type()
+    ) : alloc_(alloc), cap_(count), begin_(this->alloc_.allocate(count)), end_(this->begin_ + count) {
       for (size_type i = 0; i < count; ++i) this->alloc_.construct(&(this->begin_[i]), value);
     };
 
@@ -44,10 +49,11 @@ namespace ft {
       for (size_type i = 0; first != last; ++i, ++first) this->alloc_.construct(&(this->begin_[i]), *first);
     }
 
-    vector(const vector &x)
-      : alloc_(allocator_type()), cap_(x.cap_), begin_(this->alloc_.allocate(x.cap_)), end_(this->begin_ + x.size()) {
-      size_type size = x.size();
-      for (size_type i = 0; i < size; ++i) this->alloc_.construct(&(this->begin_[i]), x[i]);
+    vector(const vector &other)
+      : alloc_(allocator_type()), cap_(other.cap_),
+        begin_(this->alloc_.allocate(other.cap_)), end_(this->begin_ + other.size()) {
+      size_type size = other.size();
+      for (size_type i = 0; i < size; ++i) this->alloc_.construct(&(this->begin_[i]), other[i]);
     }
 
     ~vector() {

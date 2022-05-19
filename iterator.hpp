@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iterator>
-#include "type_traits"
+#include "type_traits.hpp"
 
 namespace ft {
   template <typename T>
@@ -77,7 +77,7 @@ namespace ft {
     reverse_iterator() : it_() {}
     explicit reverse_iterator(iterator_type it) : it_(it) {}
     template <typename rev_iter>
-    explicit reverse_iterator(const reverse_iterator<rev_iter>& rev_it) : it_(rev_it.base()) {}
+    reverse_iterator(const reverse_iterator<rev_iter>& rev_it) : it_(rev_it.base()) {}
 
     iterator_type base() const { return it_; }
 
@@ -138,11 +138,12 @@ namespace ft {
     typename reverse_iterator<Iter>::difference_type n,
     const reverse_iterator<Iter>& rev_it
   ) { return rev_it + n; }
-  template <typename Iter>
-  reverse_iterator<Iter> operator-(
-    typename reverse_iterator<Iter>::difference_type n,
-    const reverse_iterator<Iter>& rev_it
-  ) { return rev_it - n; }
+
+  template <typename Iter1, typename Iter2>
+  typename reverse_iterator<Iter1>::difference_type operator-(
+    const reverse_iterator<Iter1>& lhs,
+    const reverse_iterator<Iter2>& rhs
+  ) { return rhs.base() - lhs.base(); }
 
   template <typename Iter>
   Iter advance(Iter it, std::size_t n) { for (std::size_t i = 0; i < n; ++i) ++it; return it; }
