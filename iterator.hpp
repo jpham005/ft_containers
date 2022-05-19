@@ -10,11 +10,11 @@ namespace ft {
     struct two {char lx; char lxx;};
     template <typename up> static two test(...);
     template <typename up> static char test(
-      typename ft::is_valid<typename up::iterator_category>::type*,
-      typename ft::is_valid<typename up::difference_type>::type*,
-      typename ft::is_valid<typename up::value_type>::type*,
-      typename ft::is_valid<typename up::reference>::type*,
-      typename ft::is_valid<typename up::pointer>::type*
+      typename ft::void_t<typename up::iterator_category>::type*,
+      typename ft::void_t<typename up::difference_type>::type*,
+      typename ft::void_t<typename up::value_type>::type*,
+      typename ft::void_t<typename up::reference>::type*,
+      typename ft::void_t<typename up::pointer>::type*
     );
   public:
     static const bool value = sizeof(test<T>(0, 0, 0, 0, 0)) == 1;
@@ -53,20 +53,16 @@ namespace ft {
   };
 
   template <typename T>
-  struct is_input_iterator { static const bool value = ft::is_convertible<T, std::input_iterator_tag>::value; };
+  struct is_input_iterator : ft::is_convertible<T, std::input_iterator_tag> {};
 
   template <typename T>
-  struct is_forward_iterator { static const bool value = ft::is_convertible<T, std::forward_iterator_tag>::value; };
+  struct is_forward_iterator : ft::is_convertible<T, std::forward_iterator_tag> {};
 
   template <typename T>
-  struct is_bidrectional_iterator {
-    static const bool value = ft::is_convertible<T, std::bidirectional_iterator_tag>::value;
-  };
+  struct is_bidrectional_iterator : ft::is_convertible<T, std::bidirectional_iterator_tag> {};
 
   template <typename T>
-  struct is_random_access_iterator {
-    static const bool value = ft::is_convertible<T, std::random_access_iterator_tag>::value;
-  };
+  struct is_random_access_iterator : ft::is_convertible<T, std::random_access_iterator_tag> {};
 
   template <typename Iter>
   class reverse_iterator {
@@ -151,10 +147,20 @@ namespace ft {
   template <typename Iter>
   Iter advance(Iter it, std::size_t n) { for (std::size_t i = 0; i < n; ++i) ++it; return it; }
 
-  template <typename Iter1, typename Iter2>
-  std::size_t get_iter_gap(Iter1 it1, Iter2 it2) {
+  template <typename Iter>
+  std::size_t do_distance(Iter first, Iter last, std::input_iterator_tag) {
     std::size_t gap = 0;
-    while (it1 != it2) { ++it1; ++gap; }
+    while (first != last) { ++first; ++gap; }
     return gap;
+  }
+
+  template <typename Iter>
+  std::size_t do_distance(Iter first, Iter last, std::random_access_iterator_tag) {
+    return last - first;
+  }
+
+  template <typename Iter>
+  std::size_t distance(Iter first, Iter last) {
+    return do_distance(first, last, typename iterator_traits<Iter>::iterator_category());
   }
 }

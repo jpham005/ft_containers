@@ -7,14 +7,8 @@ namespace ft {
   template <typename T>
   struct enable_if<true, T> { typedef T type; };
 
-  template <typename T>
-  struct is_integral {
-    typedef bool value_type;
-    value_type type;
-  };
-
   template <typename>
-  struct is_valid {
+  struct void_t {
     typedef void type;
   };
 
