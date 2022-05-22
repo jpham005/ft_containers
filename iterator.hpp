@@ -4,6 +4,13 @@
 #include "type_traits.hpp"
 
 namespace ft {
+
+  /*
+  ======================================================================================================================
+  iterator traits
+  ======================================================================================================================
+  */
+
   template <typename T>
   struct has_iterator_typedefs {
   private:
@@ -63,6 +70,12 @@ namespace ft {
 
   template <typename T>
   struct is_random_access_iterator : ft::is_convertible<T, std::random_access_iterator_tag> {};
+
+  /*
+  ======================================================================================================================
+  reverse_iterator
+  ======================================================================================================================
+  */
 
   template <typename Iter>
   class reverse_iterator {
