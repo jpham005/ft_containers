@@ -8,33 +8,6 @@
 #include "utility.hpp"
 
 namespace ft {
-
-  /*
-  ======================================================================================================================
-  iterator
-  ======================================================================================================================
-  */
-
-  template <typename T, typename Allocator = std::allocator<T> >
-  class vector_iterator {
-  public:
-    typedef Allocator                               allocator_type;
-    typedef typename allocator_type::pointer        pointer;
-    typedef typename allocator_type::const_pointer  const_pointer;
-    typedef pointer                                 iterator;
-    typedef const_pointer                           const_iterator;
-
-    vector_iterator() : it_(NULL) {}
-    vector_iterator(const vector_iterator& other) { *(this->it_) = *(other.it_); }
-    ~vector_iterator() {}
-    iterator& operator=(vector_iterator other) { *(this->it_) = *(other.it_); return *this; }
-
-    operator
-
-  private:
-    pointer it_;
-  };
-
   /*
   ======================================================================================================================
   vector
