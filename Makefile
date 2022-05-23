@@ -5,9 +5,9 @@ CXXFLAGS    :=  -std=c++98 -Wall -Wextra -Werror -g -pedantic -fsanitize=undefin
 
 CLASS       :=
 INTERFACE   :=
-TEMPLATE    :=  pair
+TEMPLATE    :=  pair red_black_tree
 
-SRCS        :=  vector_test.cpp $(addsuffix .cpp, $(CLASS))
+SRCS        :=  rbtree_test.cpp $(addsuffix .cpp, $(CLASS))
 OBJS        :=  $(SRCS:.cpp=.o)
 
 INCLUDES    :=  $(addsuffix .hpp, $(CLASS)) $(addsuffix .hpp, $(INTERFACE)) \
