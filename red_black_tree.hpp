@@ -50,25 +50,38 @@ public:
   typedef typename Allocator::const_pointer const_pointer;
   typedef rbtree_node<value_type>           node;
   typedef pointer                           iterator; // TODO
+  typedef ExtractKey                        extract;
 
 protected:
-  node* root_;
+  node*     root_;
+  size_type size;
 
 public:
-  rbtree() : root_(NULL) {}
+  rbtree() : root_(NULL), size(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
 //  rbtree(const rbtree& other) {}
 
   void insert(const_reference value) {
-    node* y = NULL;
-    node* x = this->root_;
+    if (!this->root_) {
+      this->root_ = init_node(value);
+      return;
+    }
 
+    node* x = this->root_;
+    node* y = NULL;
+    node* z = init_node(value);
     while (x) {
       y = x;
-      if ()
+      if (compare(z, x)) x = x->left_;
+      else if (compare(x, z)) x = x->right_;
+      else return;
     }
+
+    z->parent_ = y;
+    if (!y) this->root_ = z;
+    else if (compare(z, y))
   }
 //  ft::pair<iterator, bool> insert(const_reference value) {
 //
@@ -78,6 +91,16 @@ public:
 //  void insert(InputIt first, InputIt last) {}
 
 private:
+  node* init_node(const_reference value) {
+    node* ret = new node;
+    ret->parent_ = NULL;
+    ret->left_ = NULL;
+    ret->right_ = NULL;
+    ret->value = value;
+  }
+
+  bool compare(node* n1, node* n2) { return key_compare(extract(n1->value), extract(n2->value)); }
+
   void left_rotate(node* x) {
     node* y = x->right_;
 
