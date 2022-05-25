@@ -14,17 +14,14 @@ enum RBTreeSide {
   kRBTreeSideRight
 };
 
-struct rbtree_node_base {
-  typedef rbtree_node_base this_type;
-
-  this_type*  right_;
-  this_type*  left_;
-  this_type*  parent_;
-  char        color_;
-};
-
 template <typename Value> // seperate typedef => can use node without <T>
-struct rbtree_node : public rbtree_node_base { Value value; }; // set: user val, map: pair
+struct rbtree_node {
+  Value         value;
+  rbtree_node*  right_;
+  rbtree_node*  left_;
+  rbtree_node*  parent_;
+  char          color_;
+}; // set: user val, map: pair
 
 template <typename T, typename Pointer, typename Reference>
 struct rbtree_iterator {
@@ -57,6 +54,7 @@ protected:
   size_type size;
 
 public:
+  node* getnode() { return root_; }
   rbtree() : root_(NULL), size(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
@@ -66,6 +64,7 @@ public:
   void insert(const_reference value) {
     if (!this->root_) {
       this->root_ = init_node(value);
+      this->root_->color_ = kRBTreeColorBlack;
       return;
     }
 
@@ -81,7 +80,10 @@ public:
 
     z->parent_ = y;
     if (!y) this->root_ = z;
-    else if (compare(z, y))
+    else if (compare(z, y)) y->left_ = z;
+    else y->right_ = z;
+
+    insert_fixup(z);
   }
 //  ft::pair<iterator, bool> insert(const_reference value) {
 //
@@ -91,15 +93,20 @@ public:
 //  void insert(InputIt first, InputIt last) {}
 
 private:
+  extract     extractor;
+  key_compare comparator;
+
   node* init_node(const_reference value) {
     node* ret = new node;
     ret->parent_ = NULL;
     ret->left_ = NULL;
     ret->right_ = NULL;
     ret->value = value;
+    ret->color_ = kRBTreeColorRed;
+    return ret;
   }
 
-  bool compare(node* n1, node* n2) { return key_compare(extract(n1->value), extract(n2->value)); }
+  bool compare(node* n1, node* n2) { return comparator(extractor(n1->value), extractor(n2->value)); }
 
   void left_rotate(node* x) {
     node* y = x->right_;
@@ -110,7 +117,7 @@ private:
     if (!x->parent_) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
     else x->parent_->right_ = y;
-    y->left = x;
+    y->left_ = x;
     x->parent_ = y;
   }
 
@@ -123,8 +130,58 @@ private:
     if (!x->parent_) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
     else x->parent_->right_ = y;
-    y->right = x;
+    y->right_ = x;
     x->parent_ = y;
+  }
+
+  void insert_fixup(node* z) {
+    node* y;
+
+    while (z->parent_->color_ == kRBTreeColorRed) {
+      if (z->parent_ == z->parent_->parent_->left_) {
+        y = z->parent_->parent_->right_;
+        if (y->color_ == kRBTreeColorRed) {
+          z->parent_->color_ = kRBTreeColorBlack;
+          y->color_ = kRBTreeColorBlack;
+          z->parent_->parent_->color_ = kRBTreeColorRed;
+          z = z->parent_->parent_;
+        }
+        else if (z == z->parent_->right_) {
+          z = z->parent_;
+          left_rotate(z);
+          z->parent_->color_ = kRBTreeColorBlack;
+          z->parent_->parent_->color_ = kRBTreeColorRed;
+          right_rotate(z->parent_->parent_);
+        }
+        if (z == z->parent_->left_) {
+          z->parent_->color_ = kRBTreeColorBlack;
+          z->parent_->parent_->color_ = kRBTreeColorRed;
+          right_rotate(z->parent_->parent_);
+        }
+      }
+      else {
+        y = z->parent_->parent_->left_;
+        if (y->color_ == kRBTreeColorRed) {
+          z->parent_->color_ = kRBTreeColorBlack;
+          y->color_ = kRBTreeColorBlack;
+          z->parent_->parent_->color_ = kRBTreeColorRed;
+          z = z->parent_->parent_;
+        }
+        else if (z == z->parent_->left_) {
+          z = z->parent_;
+          right_rotate(z);
+          z->parent_->color_ = kRBTreeColorBlack;
+          z->parent_->parent_->color_ = kRBTreeColorRed;
+          left_rotate(z->parent_->parent_);
+        }
+        if (z == z->parent_->right_) {
+          z->parent_->color_ = kRBTreeColorBlack;
+          z->parent_->parent_->color_ = kRBTreeColorRed;
+          left_rotate(z->parent_->parent_);
+        }
+      }
+    }
+    this->root_->color_ = kRBTreeColorBlack;
   }
 };
 
