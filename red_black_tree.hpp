@@ -6,7 +6,8 @@
 
 enum RBTreeColor {
   kRBTreeColorRed,
-  kRBTreeColorBlack
+  kRBTreeColorBlack,
+  kRBTreeColorBlue
 };
 
 enum RBTreeSide {
@@ -16,7 +17,7 @@ enum RBTreeSide {
 
 template <typename Value> // seperate typedef => can use node without <T>
 struct rbtree_node {
-  Value         value;
+  Value         value_;
   rbtree_node*  right_;
   rbtree_node*  left_;
   rbtree_node*  parent_;
@@ -55,7 +56,7 @@ protected:
 
 public:
   node* getnode() { return root_; }
-  rbtree() : root_(NULL), size(0) {}
+  rbtree() : root_(NULL), size(0), nill_(init_nill()) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
@@ -71,7 +72,7 @@ public:
     node* x = this->root_;
     node* y = NULL;
     node* z = init_node(value);
-    while (x) {
+    while (x->color_ != kRBTreeColorBlue) {
       y = x;
       if (compare(z, x)) x = x->left_;
       else if (compare(x, z)) x = x->right_;
@@ -93,20 +94,27 @@ public:
 //  void insert(InputIt first, InputIt last) {}
 
 private:
-  extract     extractor;
-  key_compare comparator;
+  extract     extractor_;
+  key_compare comparator_;
+  node*       nill_;
 
   node* init_node(const_reference value) {
     node* ret = new node;
-    ret->parent_ = NULL;
-    ret->left_ = NULL;
-    ret->right_ = NULL;
-    ret->value = value;
+    ret->parent_ = nill_;
+    ret->left_ = nill_;
+    ret->right_ = nill_;
+    ret->value_ = value;
     ret->color_ = kRBTreeColorRed;
     return ret;
   }
 
-  bool compare(node* n1, node* n2) { return comparator(extractor(n1->value), extractor(n2->value)); }
+  node* init_nill() {
+    node* ret = new node;
+    ret->color_ = kRBTreeColorBlue;
+    return ret;
+  }
+
+  bool compare(node* n1, node* n2) { return comparator_(extractor_(n1->value_), extractor_(n2->value_)); }
 
   void left_rotate(node* x) {
     node* y = x->right_;
@@ -114,7 +122,7 @@ private:
     x->right_ = y->left_;
     if (y->left_) y->left_->parent_ = x;
     y->parent_ = x->parent_;
-    if (!x->parent_) this->root_ = y;
+    if (x->parent_->color_ == kRBTreeColorBlue) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
     else x->parent_->right_ = y;
     y->left_ = x;
