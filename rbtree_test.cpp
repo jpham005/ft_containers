@@ -30,15 +30,27 @@ void testprint(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node
   testprint<Key, Value, ExtractKey, Compare, Allocator>(node->right_, "right");
 }
 
+template <
+  typename Key, typename Value, typename ExtractKey,
+  typename Compare, typename Allocator
+>
+void test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node *node) {
+  int i = 0;
+
+  if (node->color_ == kRBTreeColorBlue)
+
+}
+
 int main() {
   rbtree<int, int, use_key<int> > tree;
-  tree.insert(3);
+  tree.insert(7);
+  tree.insert(8);
+  tree.insert(2);
   tree.insert(4);
   tree.insert(5);
   tree.insert(6);
-  tree.insert(7);
+  tree.insert(3);
   tree.insert(1);
-  tree.insert(2);
   testprint<int, int, use_key<int>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   std::cout << tree.getnode()->left_->value_ << std::endl;
 }

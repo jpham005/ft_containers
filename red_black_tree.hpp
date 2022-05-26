@@ -153,15 +153,11 @@ private:
           y->color_ = kRBTreeColorBlack;
           z->parent_->parent_->color_ = kRBTreeColorRed;
           z = z->parent_->parent_;
-        }
-        else if (z == z->parent_->right_) {
-          z = z->parent_;
-          left_rotate(z);
-          z->parent_->color_ = kRBTreeColorBlack;
-          z->parent_->parent_->color_ = kRBTreeColorRed;
-          right_rotate(z->parent_->parent_);
-        }
-        if (z == z->parent_->left_) {
+        } else {
+          if (z == z->parent_->right_) {
+            z = z->parent_;
+            left_rotate(z);
+          }
           z->parent_->color_ = kRBTreeColorBlack;
           z->parent_->parent_->color_ = kRBTreeColorRed;
           right_rotate(z->parent_->parent_);
@@ -174,15 +170,11 @@ private:
           y->color_ = kRBTreeColorBlack;
           z->parent_->parent_->color_ = kRBTreeColorRed;
           z = z->parent_->parent_;
-        }
-        else if (z == z->parent_->left_) {
-          z = z->parent_;
-          right_rotate(z);
-          z->parent_->color_ = kRBTreeColorBlack;
-          z->parent_->parent_->color_ = kRBTreeColorRed;
-          left_rotate(z->parent_->parent_);
-        }
-        if (z == z->parent_->right_) {
+        } else {
+          if (z == z->parent_->left_) {
+            z = z->parent_;
+            right_rotate(z);
+          }
           z->parent_->color_ = kRBTreeColorBlack;
           z->parent_->parent_->color_ = kRBTreeColorRed;
           left_rotate(z->parent_->parent_);
