@@ -8,3 +8,4 @@ containers_test
 a.out.dSYM
 timetest
 build
+EASTL

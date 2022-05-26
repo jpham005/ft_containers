@@ -34,23 +34,40 @@ template <
   typename Key, typename Value, typename ExtractKey,
   typename Compare, typename Allocator
 >
-void test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node *node) {
-  int i = 0;
-
+int test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node *node) {
   if (node->color_ == kRBTreeColorBlue)
+    return 1;
+  if (node->parent_->color_ == kRBTreeColorRed && node->color_ == kRBTreeColorRed)
+    return -1;
 
+  int left_height = test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(node->left_);
+  int right_height = test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(node->right_);
+
+  if (left_height <= 0 || left_height != right_height) {
+    return -1;
+  }
+  return left_height + !(node->color_ == kRBTreeColorRed);
 }
+
+#include <map>
 
 int main() {
   rbtree<int, int, use_key<int> > tree;
   tree.insert(7);
   tree.insert(8);
-  tree.insert(2);
-  tree.insert(4);
-  tree.insert(5);
-  tree.insert(6);
-  tree.insert(3);
-  tree.insert(1);
+//  tree.insert(2);
+//  tree.insert(4);
+//  tree.insert(5);
+//  tree.insert(6);
+//  tree.insert(3);
+//  tree.insert(1);
   testprint<int, int, use_key<int>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
-  std::cout << tree.getnode()->left_->value_ << std::endl;
+  std::cout << "result " << test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
+  std::map<int, std::string> set;
+  set.insert(std::make_pair(1, "ASDF"));
+  set.insert(std::make_pair(2, "zxcv"));
+  typedef std::map<int, std::string>::iterator iter;
+  iter it = set.begin();
+  std::cout << (*it).first << std::endl;
+  __tree_iterator adf;
 }

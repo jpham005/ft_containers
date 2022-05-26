@@ -15,19 +15,58 @@ enum RBTreeSide {
   kRBTreeSideRight
 };
 
-template <typename Value> // seperate typedef => can use node without <T>
+template <typename Value>
 struct rbtree_node {
   Value         value_;
   rbtree_node*  right_;
   rbtree_node*  left_;
   rbtree_node*  parent_;
   char          color_;
-}; // set: user val, map: pair
+};
 
 template <typename T, typename Pointer, typename Reference>
-struct rbtree_iterator {
-  typedef rbtree_iterator<T, Pointer, Reference>  this_type;
+class rbtree_iterator {
+private:
+  template <typename Key, typename Value, typename ExtractKey, typename Compare, typename Allocator>
+  friend class rbtree;
   typedef rbtree_iterator<T, T*, T&>              iterator;
+  typedef rbtree_iterator<T, const T*, const T&>  const_iteraotr;
+  typedef rbtree_node<T>                          node_type;
+
+  node_type get_next_node(node_type* curr) {
+    if (curr->right_->color_ != kRBTreeColorBlue) {
+      curr = curr->left_;
+      while (curr->color_ != kRBTreeColorBlue)
+        curr = curr->left_;
+      return *curr;
+    }
+
+  }
+
+public:
+  node_type get_prev_node(node_type* curr) {}
+  typedef ptrdiff_t                               difference_tyoe;
+  typedef T                                       value_type;
+  typedef Pointer                                 pointer;
+  typedef Reference                               reference;
+  typedef std::bidirectional_iterator_tag         iterator_category;
+
+  node_type* node_;
+
+  rbtree_iterator() : node_(NULL) {};
+  explicit rbtree_iterator(const node_type* node);
+  rbtree_iterator(const iterator& other) : node_(other) {};
+  rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; };
+
+  reference operator*() const { return this->node_->value_; }
+  pointer operator->() const { return &(this->node_->value_); }
+
+  rbtree_iterator& operator++() {}
+  rbtree_iterator operator++(int) {}
+
+  rbtree_iterator& operator--() {}
+  rbtree_iterator operator--(int) {}
+
 };
 
 template <
@@ -36,19 +75,19 @@ template <
 >
 class rbtree {
 public:
-  typedef Key                               key_type;
-  typedef Value                             value_type;
-  typedef std::size_t                       size_type;
-  typedef std::ptrdiff_t                    difference_type;
-  typedef Compare                           key_compare;
-  typedef Allocator                         allocator_type;
-  typedef value_type&                       reference;
-  typedef const value_type&                 const_reference;
-  typedef typename Allocator::pointer       pointer;
-  typedef typename Allocator::const_pointer const_pointer;
-  typedef rbtree_node<value_type>           node;
-  typedef pointer                           iterator; // TODO
-  typedef ExtractKey                        extract;
+  typedef Key                                             key_type;
+  typedef Value                                           value_type;
+  typedef std::size_t                                     size_type;
+  typedef std::ptrdiff_t                                  difference_type;
+  typedef Compare                                         key_compare;
+  typedef Allocator                                       allocator_type;
+  typedef value_type&                                     reference;
+  typedef const value_type&                               const_reference;
+  typedef typename Allocator::pointer                     pointer;
+  typedef typename Allocator::const_pointer               const_pointer;
+  typedef rbtree_node<value_type>                         node;
+  typedef rbtree_iterator<value_type, pointer, reference> iterator;
+  typedef ExtractKey                                      extract;
 
 protected:
   node*     root_;
@@ -92,6 +131,8 @@ public:
 //  iterator insert(iterator hint, const_reference value) {}
 //  template <typename InputIt>
 //  void insert(InputIt first, InputIt last) {}
+
+  iterator begin() { return iterator(); } //  Todo
 
 private:
   extract     extractor_;
