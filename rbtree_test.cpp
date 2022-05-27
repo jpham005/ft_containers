@@ -63,11 +63,7 @@ int main() {
 //  tree.insert(1);
   testprint<int, int, use_key<int>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   std::cout << "result " << test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
-  std::map<int, std::string> set;
-  set.insert(std::make_pair(1, "ASDF"));
-  set.insert(std::make_pair(2, "zxcv"));
-  typedef std::map<int, std::string>::iterator iter;
-  iter it = set.begin();
-  std::cout << (*it).first << std::endl;
-  __tree_iterator adf;
+  typedef rbtree<int, int, use_key<int> >::iterator iter;
+  iter it = tree.begin();
+  std::cout << *it << std::endl;
 }

@@ -33,18 +33,29 @@ private:
   typedef rbtree_iterator<T, const T*, const T&>  const_iteraotr;
   typedef rbtree_node<T>                          node_type;
 
-  node_type get_next_node(node_type* curr) {
+  node_type* get_next_node(node_type* curr) {
     if (curr->right_->color_ != kRBTreeColorBlue) {
-      curr = curr->left_;
-      while (curr->color_ != kRBTreeColorBlue)
-        curr = curr->left_;
-      return *curr;
+      curr = curr->right_;
+      while (curr->left_->color_ != kRBTreeColorBlue) curr = curr->left_;
+      return curr;
     }
 
+    while (curr != curr->parent_->left_) curr = curr->parent_;
+    return curr->parent_;
+  }
+
+  node_type* get_prev_node(node_type* curr) {
+    if (curr->left_->color_ != kRBTreeColorBlue) {
+      curr = curr->left_;
+      while (curr->right_->color_ != kRBTreeColorBlue) curr = curr->right_;
+      return curr;
+    }
+
+    while (curr != curr->parent_->right_) curr = curr->parent_;
+    return curr->parent_;
   }
 
 public:
-  node_type get_prev_node(node_type* curr) {}
   typedef ptrdiff_t                               difference_tyoe;
   typedef T                                       value_type;
   typedef Pointer                                 pointer;
@@ -59,14 +70,21 @@ public:
   rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; };
 
   reference operator*() const { return this->node_->value_; }
-  pointer operator->() const { return &(this->node_->value_); }
+  pointer operator->() const { return &(operator*()); }
 
-  rbtree_iterator& operator++() {}
-  rbtree_iterator operator++(int) {}
+  rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return this->node_; } //TODO
+  rbtree_iterator operator++(int) {
+    node_type* temp = this->node_;
+    this->node_ = get_next_node(this->node_);
+    return temp; // TODO
+  }
 
-  rbtree_iterator& operator--() {}
-  rbtree_iterator operator--(int) {}
-
+  rbtree_iterator& operator--() { this->node_ = get_prev_node(this->node_); return *this; }
+  rbtree_iterator operator--(int) {
+    node_type* temp = this->node_;
+    this->node_ = get_prev_node(this->node_);
+    return temp; //TODO
+  }
 };
 
 template <
@@ -132,7 +150,11 @@ public:
 //  template <typename InputIt>
 //  void insert(InputIt first, InputIt last) {}
 
-  iterator begin() { return iterator(); } //  Todo
+  iterator begin() {
+   iterator iter(this->root_);
+   while (iter.node_->color_ != kRBTreeColorBlue) --iter;
+   return iter;
+  }
 
 private:
   extract     extractor_;
