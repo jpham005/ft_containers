@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream> //TODO
 #include <functional>
 
 #include "utility.hpp"
@@ -36,11 +36,11 @@ private:
   node_type* get_next_node(node_type* curr) {
     if (curr->right_->color_ != kRBTreeColorBlue) {
       curr = curr->right_;
-      while (curr->left_->color_ != kRBTreeColorBlue) curr = curr->left_;
+      while (curr->parent_->color_ != kRBTreeColorBlue && curr->left_->color_ != kRBTreeColorBlue) curr = curr->left_;
       return curr;
     }
 
-    while (curr != curr->parent_->left_) curr = curr->parent_;
+    while (curr->parent_->color_ != kRBTreeColorBlue && curr != curr->parent_->left_) curr = curr->parent_;
     return curr->parent_;
   }
 
@@ -51,7 +51,7 @@ private:
       return curr;
     }
 
-    while (curr != curr->parent_->right_) curr = curr->parent_;
+    while (curr->parent_->color_ != kRBTreeColorBlue && curr != curr->parent_->right_) curr = curr->parent_;
     return curr->parent_;
   }
 
@@ -65,25 +65,33 @@ public:
   node_type* node_;
 
   rbtree_iterator() : node_(NULL) {};
-  explicit rbtree_iterator(const node_type* node);
-  rbtree_iterator(const iterator& other) : node_(other) {};
-  rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; };
+  explicit rbtree_iterator(node_type* node) : node_(node) {}
+  rbtree_iterator(const iterator& other) : node_(other.node_) {}
+  rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; }
 
   reference operator*() const { return this->node_->value_; }
   pointer operator->() const { return &(operator*()); }
 
-  rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return this->node_; } //TODO
+  rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return *this; }
   rbtree_iterator operator++(int) {
     node_type* temp = this->node_;
     this->node_ = get_next_node(this->node_);
-    return temp; // TODO
+    return iterator(temp);
   }
 
   rbtree_iterator& operator--() { this->node_ = get_prev_node(this->node_); return *this; }
   rbtree_iterator operator--(int) {
     node_type* temp = this->node_;
     this->node_ = get_prev_node(this->node_);
-    return temp; //TODO
+    return iterator(temp);
+  }
+
+  friend bool operator==(const rbtree_iterator& it1, const rbtree_iterator& it2) {
+    return it1.node_ == it2.node_;
+  }
+
+  friend bool operator!=(const rbtree_iterator& it1, const rbtree_iterator& it2) {
+    return !(it1 == it2);
   }
 };
 
@@ -107,22 +115,27 @@ public:
   typedef rbtree_iterator<value_type, pointer, reference> iterator;
   typedef ExtractKey                                      extract;
 
-protected:
-  node*     root_;
-  size_type size;
+private:
+  extract     extractor_;
+  key_compare comparator_;
+  node*       nil_;
+  node*       root_;
+  node*       begin_;
+  size_type   size_;
 
 public:
   node* getnode() { return root_; }
-  rbtree() : root_(NULL), size(0), nill_(init_nill()) {}
+  rbtree() : nil_(init_nil()), root_(nil_), begin_(nil_), size_(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
 //  rbtree(const rbtree& other) {}
 
   void insert(const_reference value) {
-    if (!this->root_) {
+    if (this->root_->color_ == kRBTreeColorBlue) {
       this->root_ = init_node(value);
       this->root_->color_ = kRBTreeColorBlack;
+      this->begin_ = this->root_;
       return;
     }
 
@@ -142,6 +155,9 @@ public:
     else y->right_ = z;
 
     insert_fixup(z);
+
+    ++(this->size_);
+    if (this->begin_->left_->color_ != kRBTreeColorBlue) this->begin_ = this->begin_->left_;
   }
 //  ft::pair<iterator, bool> insert(const_reference value) {
 //
@@ -150,28 +166,22 @@ public:
 //  template <typename InputIt>
 //  void insert(InputIt first, InputIt last) {}
 
-  iterator begin() {
-   iterator iter(this->root_);
-   while (iter.node_->color_ != kRBTreeColorBlue) --iter;
-   return iter;
-  }
+  iterator begin() { return iterator(this->begin_); }
+
+  iterator end() { return iterator(this->nil_); }
 
 private:
-  extract     extractor_;
-  key_compare comparator_;
-  node*       nill_;
-
   node* init_node(const_reference value) {
     node* ret = new node;
-    ret->parent_ = nill_;
-    ret->left_ = nill_;
-    ret->right_ = nill_;
+    ret->parent_ = nil_;
+    ret->left_ = nil_;
+    ret->right_ = nil_;
     ret->value_ = value;
     ret->color_ = kRBTreeColorRed;
     return ret;
   }
 
-  node* init_nill() {
+  node* init_nil() {
     node* ret = new node;
     ret->color_ = kRBTreeColorBlue;
     return ret;
@@ -183,7 +193,7 @@ private:
     node* y = x->right_;
 
     x->right_ = y->left_;
-    if (y->left_) y->left_->parent_ = x;
+    if (y->left_->color_ != kRBTreeColorBlue) y->left_->parent_ = x;
     y->parent_ = x->parent_;
     if (x->parent_->color_ == kRBTreeColorBlue) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
@@ -196,9 +206,9 @@ private:
     node* y = x->left_;
 
     x->left_ = y->right_;
-    if (y->right_) y->right_->parent_ = x;
+    if (y->right_->color_ != kRBTreeColorBlue) y->right_->parent_ = x;
     y->parent_ = x->parent_;
-    if (!x->parent_) this->root_ = y;
+    if (x->parent_->color_ == kRBTreeColorBlue) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
     else x->parent_->right_ = y;
     y->right_ = x;
