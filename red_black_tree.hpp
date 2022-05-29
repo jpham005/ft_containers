@@ -57,11 +57,11 @@ private:
   }
 
 public:
+  typedef std::bidirectional_iterator_tag         iterator_category;
   typedef ptrdiff_t                               difference_tyoe;
   typedef T                                       value_type;
-  typedef Pointer                                 pointer;
   typedef Reference                               reference;
-  typedef std::bidirectional_iterator_tag         iterator_category;
+  typedef Pointer                                 pointer;
 
   node_type* node_;
 
@@ -139,8 +139,9 @@ public:
     if (this->root_->color_ == kRBTreeColorBlue) {
       this->root_ = init_node(value);
       this->root_->color_ = kRBTreeColorBlack;
-      this->root_->parent_ = this->anchor_;
+      this->root_->left_ = this->anchor_;
       this->root_->right_ = this->anchor_;
+      this->root_->parent_ = this->anchor_;
       this->anchor_->left_ = this->root_;
       this->anchor_->right_ = this->root_;
       return;
@@ -164,8 +165,14 @@ public:
     insert_fixup(z);
 
     ++(this->size_);
-    if (this->anchor_->left_->left_->color_ != kRBTreeColorBlue) this->anchor_->left_ = this->begin_->left_;
-    if (this->end_->right_->color_ != kRBTreeColorBlue) this->end_ = this->end_->right_;
+    if (this->anchor_->left_->left_->color_ != kRBTreeColorBlue) {
+      this->anchor_->left_ = this->anchor_->left_->left_;
+      this->anchor_->left_->left_ = this->anchor_;
+    }
+    if (this->anchor_->right_->right_->color_ != kRBTreeColorBlue) {
+      this->anchor_->right_ = this->anchor_->right_->right_;
+      this->anchor_->right_->right_ = this->anchor_;
+    }
   }
 //  ft::pair<iterator, bool> insert(const_reference value) {
 //
@@ -180,15 +187,21 @@ public:
   ======================================================================================================================
    */
 
-  iterator begin() throw() { return iterator(this->begin_); }
+  iterator begin() throw() { return iterator(this->anchor_->left_); }
 
-  const_iterator begin() const throw() { return const_iterator(this->begin_); }
+  const_iterator begin() const throw() { return const_iterator(this->anchor_->left_); }
 
-  iterator end() throw() { this->nil_->parent_ = this->end_; return iterator(this->nil_); }
+  iterator end() throw() { return iterator(this->anchor_); }
 
-  const_iterator end() const throw() { this->nil_->parent_ = this->end_; return const_iterator(this->nil_); }
+  const_iterator end() const throw() { return const_iterator(this->anchor_); }
 
-  reverse_iterator rbegin() throw() { return reverse_iterator(this->nil_); }
+  reverse_iterator rbegin() throw() { return reverse_iterator(this->anchor_->right_); }
+
+  const_reverse_iterator rbegin() const throw() { return reverse_iterator(this->anchor_->right_); }
+
+  iterator rend() throw() { return reverse_iterator(this->anchor_); }
+
+  const_iterator rend() const throw() { return const_reverse_iterator(this->anchor_); }
 
 private:
   node* init_node(const_reference value) {

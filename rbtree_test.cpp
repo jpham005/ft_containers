@@ -74,6 +74,10 @@ int main() {
     std::cout << it->first << ", " << it->second << std::endl;
   }
 
+  typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::reverse_iterator riter;
+//  for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
+//    std::cout << rit->first << ", " << rit->second << std::endl;
+    ft::iterator_traits<iter>::iterator_category
 //  std::map<int, std::string> a;
 //  a.insert(std::make_pair(1, "Asdf"));
 //  a.insert(std::make_pair(2, "Asdzf"));
