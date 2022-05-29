@@ -2,6 +2,7 @@
 #include <iostream> //TODO
 #include <functional>
 
+#include "iterator.hpp"
 #include "utility.hpp"
 
 enum RBTreeColor {
@@ -70,7 +71,7 @@ public:
   rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; }
 
   reference operator*() const { return this->node_->value_; }
-  pointer operator->() const { return &(operator*()); }
+  pointer operator->() const { return &(this->node_->value_); }
 
   rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return *this; }
   rbtree_iterator operator++(int) {
@@ -97,35 +98,38 @@ public:
 
 template <
   typename Key, typename Value, typename ExtractKey,
-  typename Compare = std::less<Key>, typename Allocator = std::allocator<Key>
+  typename Compare = std::less<Key>, typename Allocator = std::allocator<Value>
 >
 class rbtree {
 public:
-  typedef Key                                             key_type;
-  typedef Value                                           value_type;
-  typedef std::size_t                                     size_type;
-  typedef std::ptrdiff_t                                  difference_type;
-  typedef Compare                                         key_compare;
-  typedef Allocator                                       allocator_type;
-  typedef value_type&                                     reference;
-  typedef const value_type&                               const_reference;
-  typedef typename Allocator::pointer                     pointer;
-  typedef typename Allocator::const_pointer               const_pointer;
-  typedef rbtree_node<value_type>                         node;
-  typedef rbtree_iterator<value_type, pointer, reference> iterator;
-  typedef ExtractKey                                      extract;
+  typedef Key                                                         key_type;
+  typedef Value                                                       value_type;
+  typedef std::size_t                                                 size_type;
+  typedef std::ptrdiff_t                                              difference_type;
+  typedef Compare                                                     key_compare;
+  typedef Allocator                                                   allocator_type;
+  typedef value_type&                                                 reference;
+  typedef const value_type&                                           const_reference;
+  typedef typename Allocator::pointer                                 pointer;
+  typedef typename Allocator::const_pointer                           const_pointer;
+  typedef rbtree_node<value_type>                                     node;
+  typedef rbtree_iterator<value_type, pointer, reference>             iterator;
+  typedef rbtree_iterator<value_type, const_pointer, const_reference> const_iterator;
+  typedef ft::reverse_iterator<iterator>                              reverse_iterator;
+  typedef ft::reverse_iterator<const_iterator>                        const_reverse_iterator;
+  typedef ExtractKey                                                  extract;
 
 private:
   extract     extractor_;
   key_compare comparator_;
   node*       nil_;
   node*       root_;
-  node*       begin_;
+  node*       anchor_;
   size_type   size_;
 
 public:
   node* getnode() { return root_; }
-  rbtree() : nil_(init_nil()), root_(nil_), begin_(nil_), size_(0) {}
+  rbtree() : nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
@@ -135,7 +139,10 @@ public:
     if (this->root_->color_ == kRBTreeColorBlue) {
       this->root_ = init_node(value);
       this->root_->color_ = kRBTreeColorBlack;
-      this->begin_ = this->root_;
+      this->root_->parent_ = this->anchor_;
+      this->root_->right_ = this->anchor_;
+      this->anchor_->left_ = this->root_;
+      this->anchor_->right_ = this->root_;
       return;
     }
 
@@ -157,7 +164,8 @@ public:
     insert_fixup(z);
 
     ++(this->size_);
-    if (this->begin_->left_->color_ != kRBTreeColorBlue) this->begin_ = this->begin_->left_;
+    if (this->anchor_->left_->left_->color_ != kRBTreeColorBlue) this->anchor_->left_ = this->begin_->left_;
+    if (this->end_->right_->color_ != kRBTreeColorBlue) this->end_ = this->end_->right_;
   }
 //  ft::pair<iterator, bool> insert(const_reference value) {
 //
@@ -166,9 +174,21 @@ public:
 //  template <typename InputIt>
 //  void insert(InputIt first, InputIt last) {}
 
-  iterator begin() { return iterator(this->begin_); }
+  /*
+  ======================================================================================================================
+   iterator
+  ======================================================================================================================
+   */
 
-  iterator end() { return iterator(this->nil_); }
+  iterator begin() throw() { return iterator(this->begin_); }
+
+  const_iterator begin() const throw() { return const_iterator(this->begin_); }
+
+  iterator end() throw() { this->nil_->parent_ = this->end_; return iterator(this->nil_); }
+
+  const_iterator end() const throw() { this->nil_->parent_ = this->end_; return const_iterator(this->nil_); }
+
+  reverse_iterator rbegin() throw() { return reverse_iterator(this->nil_); }
 
 private:
   node* init_node(const_reference value) {

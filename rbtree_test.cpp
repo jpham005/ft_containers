@@ -8,6 +8,11 @@ struct use_key {
   T operator()(T t) { return t; }
 };
 
+template <typename first, typename last>
+struct use_first {
+  first operator()(ft::pair<first, last> pair) { return pair.first; }
+};
+
 template <
   typename Key, typename Value, typename ExtractKey,
   typename Compare, typename Allocator
@@ -40,8 +45,8 @@ int test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>:
   if (node->parent_->color_ == kRBTreeColorRed && node->color_ == kRBTreeColorRed)
     return -1;
 
-  int left_height = test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(node->left_);
-  int right_height = test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(node->right_);
+  int left_height = test_valid_tree<Key, Value, ExtractKey, Compare, Allocator >(node->left_);
+  int right_height = test_valid_tree<Key, Value, ExtractKey, Compare, Allocator >(node->right_);
 
   if (left_height <= 0 || left_height != right_height) {
     return -1;
@@ -52,17 +57,29 @@ int test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>:
 #include <map>
 
 int main() {
-  rbtree<int, int, use_key<int> > tree;
-  tree.insert(1);
-  tree.insert(7);
-  tree.insert(8);
-  tree.insert(2);
-  tree.insert(4);
-  tree.insert(5);
-  tree.insert(6);
-  tree.insert(3);
-  std::cout << "result " << test_valid_tree<int, int, use_key<int>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
-  typedef rbtree<int, int, use_key<int> >::iterator iter;
+  rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > tree;
+  ft::pair<int, std::string> test = ft::make_pair(1, "ASDF");
+  tree.insert(test);
+  tree.insert(ft::make_pair(7, "ASDF"));
+  tree.insert(ft::make_pair(8, "ASDF"));
+  tree.insert(ft::make_pair(2, "ASDF"));
+  tree.insert(ft::make_pair(4, "ASDF"));
+  tree.insert(ft::make_pair(5, "ASDF"));
+  tree.insert(ft::make_pair(6, "ASDF"));
+  tree.insert(ft::make_pair(3, "ASDF"));
+  std::cout << "result " << test_valid_tree<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
+  typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::iterator iter;
   std::cout << "====================" << std::endl;
-  for (iter it = tree.begin(); it != tree.end(); it++) std::cout << *it << std::endl;
+  for (iter it = tree.begin(); it != tree.end(); it++) {
+    std::cout << it->first << ", " << it->second << std::endl;
+  }
+
+//  std::map<int, std::string> a;
+//  a.insert(std::make_pair(1, "Asdf"));
+//  a.insert(std::make_pair(2, "Asdzf"));
+//  typedef std::map<int, std::string>::iterator oit;
+
+//  oit oit_ = a.end();
+//  (--oit_)->first;
+//  std::cout << (--oit_)->first << std::endl;
 }
