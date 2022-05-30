@@ -66,7 +66,7 @@ namespace ft {
   struct is_forward_iterator : ft::is_convertible<T, std::forward_iterator_tag> {};
 
   template <typename T>
-  struct is_bidrectional_iterator : ft::is_convertible<T, std::bidirectional_iterator_tag> {};
+  struct is_bidirectional_iterator : ft::is_convertible<T, std::bidirectional_iterator_tag> {};
 
   template <typename T>
   struct is_random_access_iterator : ft::is_convertible<T, std::random_access_iterator_tag> {};

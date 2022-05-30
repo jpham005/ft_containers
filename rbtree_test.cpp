@@ -2,6 +2,7 @@
 #include <map>
 #include <iostream>
 #include <string>
+#include "vector.hpp"
 
 template <typename T>
 struct use_key {
@@ -51,13 +52,14 @@ int test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>:
   if (left_height <= 0 || left_height != right_height) {
     return -1;
   }
-  return left_height + !(node->color_ == kRBTreeColorRed);
+  return left_height + (node->color_ != kRBTreeColorRed);
 }
 
 #include <map>
 
 int main() {
   rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > tree;
+  std::cout << tree.empty() << std::endl;
   ft::pair<int, std::string> test = ft::make_pair(1, "ASDF");
   tree.insert(test);
   tree.insert(ft::make_pair(7, "ASDF"));
@@ -75,13 +77,16 @@ int main() {
   }
 
   typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::reverse_iterator riter;
-//  for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
-//    std::cout << rit->first << ", " << rit->second << std::endl;
-    ft::iterator_traits<iter>::iterator_category
-//  std::map<int, std::string> a;
-//  a.insert(std::make_pair(1, "Asdf"));
-//  a.insert(std::make_pair(2, "Asdzf"));
-//  typedef std::map<int, std::string>::iterator oit;
+  for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
+    std::cout << rit->first << ", " << rit->second << std::endl;
+
+  rbtree<char, ft::pair<char, char>, use_key<char> > max;
+  std::cout << tree.empty() << ", " << tree.size() << ", " << max.max_size() << std::endl;
+  std::map<char, char> a;
+  std::cout << a.max_size() << std::endl;
+
+  for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
+    std::cout << rit->first << ", " << rit->second << std::endl;
 
 //  oit oit_ = a.end();
 //  (--oit_)->first;

@@ -55,15 +55,14 @@ private:
     while (curr->parent_->color_ != kRBTreeColorBlue && curr != curr->parent_->right_) curr = curr->parent_;
     return curr->parent_;
   }
+  node_type* node_;
 
 public:
   typedef std::bidirectional_iterator_tag         iterator_category;
-  typedef ptrdiff_t                               difference_tyoe;
+  typedef ptrdiff_t                               difference_type;
   typedef T                                       value_type;
   typedef Reference                               reference;
   typedef Pointer                                 pointer;
-
-  node_type* node_;
 
   rbtree_iterator() : node_(NULL) {};
   explicit rbtree_iterator(node_type* node) : node_(node) {}
@@ -118,18 +117,21 @@ public:
   typedef ft::reverse_iterator<iterator>                              reverse_iterator;
   typedef ft::reverse_iterator<const_iterator>                        const_reverse_iterator;
   typedef ExtractKey                                                  extract;
+  typedef typename allocator_type::template rebind<node>::other       node_allocator_type;
 
 private:
-  extract     extractor_;
-  key_compare comparator_;
-  node*       nil_;
-  node*       root_;
-  node*       anchor_;
-  size_type   size_;
+  node_allocator_type node_allocator_;
+  extract             extractor_;
+  key_compare         comparator_;
+  node*               nil_;
+  node*               root_;
+  node*               anchor_;
+  size_type           size_;
 
 public:
   node* getnode() { return root_; }
-  rbtree() : nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
+  rbtree()
+    : node_allocator_(node_allocator_type()), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
@@ -144,6 +146,7 @@ public:
       this->root_->parent_ = this->anchor_;
       this->anchor_->left_ = this->root_;
       this->anchor_->right_ = this->root_;
+      ++(this->size_);
       return;
     }
 
@@ -165,13 +168,13 @@ public:
     insert_fixup(z);
 
     ++(this->size_);
-    if (this->anchor_->left_->left_->color_ != kRBTreeColorBlue) {
-      this->anchor_->left_ = this->anchor_->left_->left_;
-      this->anchor_->left_->left_ = this->anchor_;
+    if (this->anchor_->right_->left_->color_ != kRBTreeColorBlue) {
+      this->anchor_->right_ = this->anchor_->right_->left_;
+      this->anchor_->right_->left_ = this->anchor_;
     }
-    if (this->anchor_->right_->right_->color_ != kRBTreeColorBlue) {
-      this->anchor_->right_ = this->anchor_->right_->right_;
-      this->anchor_->right_->right_ = this->anchor_;
+    if (this->anchor_->left_->right_->color_ != kRBTreeColorBlue) {
+      this->anchor_->left_ = this->anchor_->left_->right_;
+      this->anchor_->left_->right_ = this->anchor_;
     }
   }
 //  ft::pair<iterator, bool> insert(const_reference value) {
@@ -187,25 +190,37 @@ public:
   ======================================================================================================================
    */
 
-  iterator begin() throw() { return iterator(this->anchor_->left_); }
+  iterator begin() throw() { return iterator(this->anchor_->right_); }
 
-  const_iterator begin() const throw() { return const_iterator(this->anchor_->left_); }
+  const_iterator begin() const throw() { return const_iterator(this->anchor_->right_); }
 
   iterator end() throw() { return iterator(this->anchor_); }
 
   const_iterator end() const throw() { return const_iterator(this->anchor_); }
 
-  reverse_iterator rbegin() throw() { return reverse_iterator(this->anchor_->right_); }
+  reverse_iterator rbegin() throw() { return reverse_iterator(iterator(this->anchor_)); }
 
-  const_reverse_iterator rbegin() const throw() { return reverse_iterator(this->anchor_->right_); }
+  const_reverse_iterator rbegin() const throw() { return reverse_iterator(const_iterator(this->anchor_)); }
 
-  iterator rend() throw() { return reverse_iterator(this->anchor_); }
+  reverse_iterator rend() throw() { return reverse_iterator(iterator(this->anchor_->right_)); }
 
-  const_iterator rend() const throw() { return const_reverse_iterator(this->anchor_); }
+  const_reverse_iterator rend() const throw() { return const_reverse_iterator(const_iterator(this->right_)); }
+
+  /*
+  ======================================================================================================================
+   capacity
+  ======================================================================================================================
+  */
+
+  bool empty() const throw() { return this->size_ == 0; }
+  size_type size() const throw() { return this->size_; }
+  size_type max_size() const throw() {
+    return std::numeric_limits<difference_type>::max(), this->node_allocator_.max_size();
+  }
 
 private:
   node* init_node(const_reference value) {
-    node* ret = new node;
+    node* ret = this->node_allocator_.allocate(1);
     ret->parent_ = nil_;
     ret->left_ = nil_;
     ret->right_ = nil_;
@@ -215,7 +230,7 @@ private:
   }
 
   node* init_nil() {
-    node* ret = new node;
+    node* ret = this->node_allocator_.allocate(1);
     ret->color_ = kRBTreeColorBlue;
     return ret;
   }
