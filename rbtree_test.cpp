@@ -6,12 +6,12 @@
 
 template <typename T>
 struct use_key {
-  T operator()(T t) { return t; }
+  T operator()(const T& t) { return t; }
 };
 
 template <typename first, typename last>
 struct use_first {
-  first operator()(ft::pair<first, last> pair) { return pair.first; }
+  first operator()(const ft::pair<first, last>& pair) { return pair.first; }
 };
 
 template <
@@ -21,8 +21,8 @@ template <
 void testprint(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node *node, std::string dir) {
 
   if (node->color_ == kRBTreeColorBlue) { std::cout << "end"  << std::endl; return; }
-
-  std::cout << " value: " << node->value_ << " color: ";
+  ExtractKey extractor;
+  std::cout << " value: " << extractor(node->value_) << " color: ";
   if (node->color_ == kRBTreeColorBlack)
     std::cout << "black";
   else if (node->color_ == kRBTreeColorRed)
@@ -69,24 +69,26 @@ int main() {
   tree.insert(ft::make_pair(5, "ASDF"));
   tree.insert(ft::make_pair(6, "ASDF"));
   tree.insert(ft::make_pair(3, "ASDF"));
+//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   std::cout << "result " << test_valid_tree<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
   typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::iterator iter;
   std::cout << "====================" << std::endl;
   for (iter it = tree.begin(); it != tree.end(); it++) {
     std::cout << it->first << ", " << it->second << std::endl;
   }
-
+  std::cout << "====================" << std::endl;
   typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::reverse_iterator riter;
   for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
     std::cout << rit->first << ", " << rit->second << std::endl;
-
+  std::cout << "====================" << std::endl;
   rbtree<char, ft::pair<char, char>, use_key<char> > max;
   std::cout << tree.empty() << ", " << tree.size() << ", " << max.max_size() << std::endl;
   std::map<char, char> a;
   std::cout << a.max_size() << std::endl;
+  std::cout << "====================" << std::endl;
 
-  for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
-    std::cout << rit->first << ", " << rit->second << std::endl;
+  std::cout << (--tree.rend())->first << std::endl;
+  std::cout << (--tree.end())->first << std::endl;
 
 //  oit oit_ = a.end();
 //  (--oit_)->first;

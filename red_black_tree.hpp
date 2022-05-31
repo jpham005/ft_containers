@@ -18,7 +18,7 @@ enum RBTreeSide {
 
 template <typename Value>
 struct rbtree_node {
-  Value         value_;
+  Value*        value_;
   rbtree_node*  right_;
   rbtree_node*  left_;
   rbtree_node*  parent_;
@@ -69,8 +69,8 @@ public:
   rbtree_iterator(const iterator& other) : node_(other.node_) {}
   rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; }
 
-  reference operator*() const { return this->node_->value_; }
-  pointer operator->() const { return &(this->node_->value_); }
+  reference operator*() const { return *(this->node_->value_); }
+  pointer operator->() const { return this->node_->value_; }
 
   rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return *this; }
   rbtree_iterator operator++(int) {
@@ -117,28 +117,27 @@ public:
   typedef ft::reverse_iterator<iterator>                              reverse_iterator;
   typedef ft::reverse_iterator<const_iterator>                        const_reverse_iterator;
   typedef ExtractKey                                                  extract;
-  typedef typename allocator_type::template rebind<node>::other       node_allocator_type;
 
 private:
-  node_allocator_type node_allocator_;
-  extract             extractor_;
-  key_compare         comparator_;
-  node*               nil_;
-  node*               root_;
-  node*               anchor_;
-  size_type           size_;
+  allocator_type  allocator_;
+  extract         extractor_;
+  key_compare     comparator_;
+  node*           nil_;
+  node*           root_;
+  node*           anchor_;
+  size_type       size_;
 
 public:
-  node* getnode() { return root_; }
+  node* getnode() { return root_; }// TODO
   rbtree()
-    : node_allocator_(node_allocator_type()), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
+    : allocator_(allocator_type()), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
 //  template <typename InputIt>
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
 //  rbtree(const rbtree& other) {}
 
   void insert(const_reference value) {
-    if (this->root_->color_ == kRBTreeColorBlue) {
+    if (!this->size_) {
       this->root_ = init_node(value);
       this->root_->color_ = kRBTreeColorBlack;
       this->root_->left_ = this->anchor_;
@@ -215,27 +214,32 @@ public:
   bool empty() const throw() { return this->size_ == 0; }
   size_type size() const throw() { return this->size_; }
   size_type max_size() const throw() {
-    return std::numeric_limits<difference_type>::max(), this->node_allocator_.max_size();
+    return std::numeric_limits<difference_type>::max(), this->allocator_.max_size();
   }
 
 private:
   node* init_node(const_reference value) {
-    node* ret = this->node_allocator_.allocate(1);
+    node* ret = new node;
     ret->parent_ = nil_;
     ret->left_ = nil_;
     ret->right_ = nil_;
-    ret->value_ = value;
+//    ret->value_ = this->allocator_.allocate(1);
+    ret->value_ = new Value;
+    *(ret->value_) = value;
     ret->color_ = kRBTreeColorRed;
     return ret;
   }
 
   node* init_nil() {
-    node* ret = this->node_allocator_.allocate(1);
+    node* ret = new node;
+    ret->value_ = NULL;
     ret->color_ = kRBTreeColorBlue;
     return ret;
   }
 
-  bool compare(node* n1, node* n2) { return comparator_(extractor_(n1->value_), extractor_(n2->value_)); }
+  bool compare(node* n1, node* n2) {
+    return this->comparator_(this->extractor_(*(n1->value_)), this->extractor_(*(n2->value_)));
+  }
 
   void left_rotate(node* x) {
     node* y = x->right_;
