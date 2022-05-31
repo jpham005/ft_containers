@@ -130,52 +130,6 @@ public:
 //  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
 //  rbtree(const rbtree& other) {}
 
-  void insert(const_reference value) {
-    if (!this->size_) {
-      this->root_ = init_node(value);
-      this->root_->color_ = kRBTreeColorBlack;
-      this->root_->left_ = this->anchor_;
-      this->root_->right_ = this->anchor_;
-      this->root_->parent_ = this->anchor_;
-      this->anchor_->left_ = this->root_;
-      this->anchor_->right_ = this->root_;
-      ++(this->size_);
-      return;
-    }
-
-    node* x = this->root_;
-    node* y = NULL;
-    node* z = init_node(value);
-    while (x->value_) {
-      y = x;
-      if (compare(z, x)) x = x->left_;
-      else if (compare(x, z)) x = x->right_;
-      else return;
-    }
-
-    z->parent_ = y;
-    if (!y) this->root_ = z;
-    else if (compare(z, y)) y->left_ = z;
-    else y->right_ = z;
-
-    insert_fixup(z);
-
-    ++(this->size_);
-    if (this->anchor_->right_->left_->value_) {
-      this->anchor_->right_ = this->anchor_->right_->left_;
-      this->anchor_->right_->left_ = this->anchor_;
-    }
-    if (this->anchor_->left_->right_->value_) {
-      this->anchor_->left_ = this->anchor_->left_->right_;
-      this->anchor_->left_->right_ = this->anchor_;
-    }
-  }
-//  ft::pair<iterator, bool> insert(const_reference value) {
-//
-//  }
-//  iterator insert(iterator hint, const_reference value) {}
-//  template <typename InputIt>
-//  void insert(InputIt first, InputIt last) {}
 
   /*
   ======================================================================================================================
@@ -206,10 +160,64 @@ public:
   */
 
   bool empty() const throw() { return this->size_ == 0; }
+
   size_type size() const throw() { return this->size_; }
-  size_type max_size() const throw() {
+
+  size_type max_size() const throw() { // TODO
     return std::numeric_limits<difference_type>::max(), this->allocator_.max_size();
   }
+
+  /*
+  ======================================================================================================================
+   modifier
+  ======================================================================================================================
+  */
+
+  ft::pair<iterator, bool> insert(const_reference value) {
+    if (!this->size_) {
+      this->root_ = init_node(value);
+      this->root_->color_ = kRBTreeColorBlack;
+      this->root_->left_ = this->anchor_;
+      this->root_->right_ = this->anchor_;
+      this->root_->parent_ = this->anchor_;
+      this->anchor_->left_ = this->root_;
+      this->anchor_->right_ = this->root_;
+      ++(this->size_);
+      return ft::make_pair(iterator(this->root_), true);
+    }
+
+    node* x = this->root_;
+    node* y = NULL;
+    node* z = init_node(value);
+    while (x->value_) {
+      y = x;
+      if (compare(z, x)) x = x->left_;
+      else if (compare(x, z)) x = x->right_;
+      else return ft::make_pair(iterator(x), false);
+    }
+
+    z->parent_ = y;
+    if (!y) this->root_ = z;
+    else if (compare(z, y)) y->left_ = z;
+    else y->right_ = z;
+
+    insert_fixup(z);
+
+    ++(this->size_);
+    if (this->anchor_->right_->left_->value_) {
+      this->anchor_->right_ = this->anchor_->right_->left_;
+      this->anchor_->right_->left_ = this->anchor_;
+    }
+    if (this->anchor_->left_->right_->value_) {
+      this->anchor_->left_ = this->anchor_->left_->right_;
+      this->anchor_->left_->right_ = this->anchor_;
+    }
+
+    return ft::make_pair(iterator(z), true);
+  }
+//  iterator insert(iterator hint, const_reference value) {}
+//  template <typename InputIt>
+//  void insert(InputIt first, InputIt last) {}
 
 private:
   node* init_node(const_reference value) {
