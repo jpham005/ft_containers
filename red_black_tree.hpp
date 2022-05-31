@@ -217,8 +217,7 @@ private:
     ret->parent_ = nil_;
     ret->left_ = nil_;
     ret->right_ = nil_;
-//    ret->value_ = this->allocator_.allocate(1);
-    ret->value_ = new Value;
+    ret->value_ = this->allocator_.allocate(1);
     *(ret->value_) = value;
     ret->color_ = kRBTreeColorRed;
     return ret;
@@ -239,7 +238,7 @@ private:
     node* y = x->right_;
 
     x->right_ = y->left_;
-    if (y->left_->value_) y->left_->parent_ = x; // TODO
+    y->left_->parent_ = x;
     y->parent_ = x->parent_;
     if (!x->parent_->value_) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
@@ -252,7 +251,7 @@ private:
     node* y = x->left_;
 
     x->left_ = y->right_;
-    if (y->right_->value_) y->right_->parent_ = x;
+    y->right_->parent_ = x;
     y->parent_ = x->parent_;
     if (!x->parent_->value_) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
