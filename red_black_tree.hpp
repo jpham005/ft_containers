@@ -238,7 +238,7 @@ private:
   }
 
   bool compare(node* n1, node* n2) {
-    return this->comparator_(this->extractor_(*(n1->value_)), this->extractor_(*(n2->value_)));
+    return this->comparator_(this->extractor_(n1->value_), this->extractor_(n2->value_));
   }
 
   void left_rotate(node* x) {

@@ -11,7 +11,7 @@ struct use_key {
 
 template <typename first, typename last>
 struct use_first {
-  first operator()(const ft::pair<first, last>& pair) { return pair.first; }
+  first operator()(const ft::pair<first, last>* pair) { return pair->first; }
 };
 
 template <
