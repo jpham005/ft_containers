@@ -20,14 +20,14 @@ template <
 >
 void testprint(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node *node, std::string dir) {
 
-  if (node->color_ == kRBTreeColorBlue) { std::cout << "end"  << std::endl; return; }
+  if (!node->value_) { std::cout << "end"  << std::endl; return; }
   ExtractKey extractor;
   std::cout << " value: " << extractor(node->value_) << " color: ";
   if (node->color_ == kRBTreeColorBlack)
     std::cout << "black";
   else if (node->color_ == kRBTreeColorRed)
     std::cout << "red";
-  else if (node->color_ == kRBTreeColorBlue)
+  else if (!node->value_)
     std::cout << "blue";
   else
     std::cout << "wrong";
@@ -41,7 +41,7 @@ template <
   typename Compare, typename Allocator
 >
 int test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>::node *node) {
-  if (node->color_ == kRBTreeColorBlue)
+  if (!node->value_)
     return 1;
   if (node->parent_->color_ == kRBTreeColorRed && node->color_ == kRBTreeColorRed)
     return -1;
@@ -60,16 +60,23 @@ int test_valid_tree(typename rbtree<Key, Value, ExtractKey, Compare, Allocator>:
 int main() {
   rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > tree;
   std::cout << tree.empty() << std::endl;
-  ft::pair<int, std::string> test = ft::make_pair(1, "ASDF");
+  ft::pair<int, std::string> test = ft::make_pair(1, "1111");
   tree.insert(test);
-  tree.insert(ft::make_pair(7, "ASDF"));
-  tree.insert(ft::make_pair(8, "ASDF"));
-  tree.insert(ft::make_pair(2, "ASDF"));
-  tree.insert(ft::make_pair(4, "ASDF"));
-  tree.insert(ft::make_pair(5, "ASDF"));
-  tree.insert(ft::make_pair(6, "ASDF"));
-  tree.insert(ft::make_pair(3, "ASDF"));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(7, "777777"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(8, "88"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(2, "2222"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(4, "4444"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(5, "5555"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(6, "6666"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  tree.insert(ft::make_pair(3, "3333"));
+  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   std::cout << "result " << test_valid_tree<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
   typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::iterator iter;
   std::cout << "====================" << std::endl;
@@ -90,7 +97,17 @@ int main() {
   std::cout << (--tree.rend())->first << std::endl;
   std::cout << (--tree.end())->first << std::endl;
 
+  std::cout << "====================" << std::endl;
+
+  typedef ft::pair<int, std::string> value;
+  std::allocator<value> alloc;
+  value* ptr = alloc.allocate(1);
+  ptr->first = 1;
+  ptr->second = "adsF";
+  std::cout << ptr->first << ptr->second;
+
 //  oit oit_ = a.end();
 //  (--oit_)->first;
 //  std::cout << (--oit_)->first << std::endl;
+//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
 }

@@ -7,13 +7,7 @@
 
 enum RBTreeColor {
   kRBTreeColorRed,
-  kRBTreeColorBlack,
-  kRBTreeColorBlue
-};
-
-enum RBTreeSide {
-  kRBTreeSideLeft,
-  kRBTreeSideRight
+  kRBTreeColorBlack
 };
 
 template <typename Value>
@@ -31,28 +25,28 @@ private:
   template <typename Key, typename Value, typename ExtractKey, typename Compare, typename Allocator>
   friend class rbtree;
   typedef rbtree_iterator<T, T*, T&>              iterator;
-  typedef rbtree_iterator<T, const T*, const T&>  const_iteraotr;
+  typedef rbtree_iterator<T, const T*, const T&>  const_iteraotr; // TODO
   typedef rbtree_node<T>                          node_type;
 
   node_type* get_next_node(node_type* curr) {
-    if (curr->right_->color_ != kRBTreeColorBlue) {
+    if (curr->right_->value_) {
       curr = curr->right_;
-      while (curr->parent_->color_ != kRBTreeColorBlue && curr->left_->color_ != kRBTreeColorBlue) curr = curr->left_;
+      while (curr->parent_->value_ && curr->left_->value_) curr = curr->left_;
       return curr;
     }
 
-    while (curr->parent_->color_ != kRBTreeColorBlue && curr != curr->parent_->left_) curr = curr->parent_;
+    while (curr->parent_->value_ && curr != curr->parent_->left_) curr = curr->parent_;
     return curr->parent_;
   }
 
   node_type* get_prev_node(node_type* curr) {
-    if (curr->left_->color_ != kRBTreeColorBlue) {
+    if (curr->left_->value_) {
       curr = curr->left_;
-      while (curr->right_->color_ != kRBTreeColorBlue) curr = curr->right_;
+      while (curr->right_->value_) curr = curr->right_;
       return curr;
     }
 
-    while (curr->parent_->color_ != kRBTreeColorBlue && curr != curr->parent_->right_) curr = curr->parent_;
+    while (curr->parent_->value_ && curr != curr->parent_->right_) curr = curr->parent_;
     return curr->parent_;
   }
   node_type* node_;
@@ -128,7 +122,7 @@ private:
   size_type       size_;
 
 public:
-  node* getnode() { return root_; }// TODO
+  node* getnode() { return root_; } // TODO
   rbtree()
     : allocator_(allocator_type()), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 //  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
@@ -152,7 +146,7 @@ public:
     node* x = this->root_;
     node* y = NULL;
     node* z = init_node(value);
-    while (x->color_ != kRBTreeColorBlue) {
+    while (x->value_) {
       y = x;
       if (compare(z, x)) x = x->left_;
       else if (compare(x, z)) x = x->right_;
@@ -167,11 +161,11 @@ public:
     insert_fixup(z);
 
     ++(this->size_);
-    if (this->anchor_->right_->left_->color_ != kRBTreeColorBlue) {
+    if (this->anchor_->right_->left_->value_) {
       this->anchor_->right_ = this->anchor_->right_->left_;
       this->anchor_->right_->left_ = this->anchor_;
     }
-    if (this->anchor_->left_->right_->color_ != kRBTreeColorBlue) {
+    if (this->anchor_->left_->right_->value_) {
       this->anchor_->left_ = this->anchor_->left_->right_;
       this->anchor_->left_->right_ = this->anchor_;
     }
@@ -233,7 +227,7 @@ private:
   node* init_nil() {
     node* ret = new node;
     ret->value_ = NULL;
-    ret->color_ = kRBTreeColorBlue;
+    ret->color_ = kRBTreeColorBlack;
     return ret;
   }
 
@@ -245,9 +239,9 @@ private:
     node* y = x->right_;
 
     x->right_ = y->left_;
-    if (y->left_->color_ != kRBTreeColorBlue) y->left_->parent_ = x;
+    if (y->left_->value_) y->left_->parent_ = x; // TODO
     y->parent_ = x->parent_;
-    if (x->parent_->color_ == kRBTreeColorBlue) this->root_ = y;
+    if (!x->parent_->value_) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
     else x->parent_->right_ = y;
     y->left_ = x;
@@ -258,9 +252,9 @@ private:
     node* y = x->left_;
 
     x->left_ = y->right_;
-    if (y->right_->color_ != kRBTreeColorBlue) y->right_->parent_ = x;
+    if (y->right_->value_) y->right_->parent_ = x;
     y->parent_ = x->parent_;
-    if (x->parent_->color_ == kRBTreeColorBlue) this->root_ = y;
+    if (!x->parent_->value_) this->root_ = y;
     else if (x == x->parent_->left_) x->parent_->left_ = y;
     else x->parent_->right_ = y;
     y->right_ = x;
