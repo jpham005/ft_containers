@@ -175,14 +175,7 @@ public:
 
   ft::pair<iterator, bool> insert(const_reference value) {
     if (!this->size_) {
-      this->root_ = init_node(value);
-      this->root_->color_ = kRBTreeColorBlack;
-      this->root_->left_ = this->anchor_;
-      this->root_->right_ = this->anchor_;
-      this->root_->parent_ = this->anchor_;
-      this->anchor_->left_ = this->root_;
-      this->anchor_->right_ = this->root_;
-      ++(this->size_);
+      insert_root(value);
       return ft::make_pair(iterator(this->root_), true);
     }
 
@@ -197,25 +190,53 @@ public:
     }
 
     z->parent_ = y;
-    if (!y) this->root_ = z;
-    else if (compare(z, y)) y->left_ = z;
+    if (compare(z, y)) y->left_ = z;
     else y->right_ = z;
 
     insert_fixup(z);
 
     ++(this->size_);
-    if (this->anchor_->right_->left_->value_) {
-      this->anchor_->right_ = this->anchor_->right_->left_;
-      this->anchor_->right_->left_ = this->anchor_;
-    }
-    if (this->anchor_->left_->right_->value_) {
-      this->anchor_->left_ = this->anchor_->left_->right_;
-      this->anchor_->left_->right_ = this->anchor_;
-    }
+    update_anchor();
 
     return ft::make_pair(iterator(z), true);
   }
-//  iterator insert(iterator hint, const_reference value) {}
+
+  iterator insert(iterator hint, const_reference value) {
+    if (!this->size_) {
+      insert_root(value);
+      return iterator(this->root_);
+    }
+
+    node* x = hint.node_;
+    if (x == this->anchor_)
+      x = x->right_;
+    node* y = NULL;
+    node* z = init_node(value);
+
+    if (compare(z, x)) while (x->parent_->value_ && compare(z, x)) x = x->parent_;
+    else if (compare(x, z)) while (x->parent_->value_ && compare(x->parent_, z)) x = x->parent_;
+
+    if (!(compare(z, x) || compare(x, z))) return iterator(x);
+
+    while (x->value_) {
+      y = x;
+      if (compare(z, x)) x = x->left_;
+      else if (compare(x, z)) x = x->right_;
+      else return iterator(x);
+    }
+
+    z->parent_ = y;
+    if (compare(z, y)) y->left_ = z;
+    else y->right_ = z;
+
+    insert_fixup(z);
+
+    ++(this->size_);
+    update_anchor();
+
+    return iterator(z);
+  }
+
 //  template <typename InputIt>
 //  void insert(InputIt first, InputIt last) {}
 
@@ -268,6 +289,17 @@ private:
     x->parent_ = y;
   }
 
+  void insert_root(const_reference value) {
+    this->root_ = init_node(value);
+    this->root_->color_ = kRBTreeColorBlack;
+    this->root_->left_ = this->anchor_;
+    this->root_->right_ = this->anchor_;
+    this->root_->parent_ = this->anchor_;
+    this->anchor_->left_ = this->root_;
+    this->anchor_->right_ = this->root_;
+    ++(this->size_);
+  }
+
   void insert_fixup(node* z) {
     node* y;
 
@@ -308,6 +340,18 @@ private:
       }
     }
     this->root_->color_ = kRBTreeColorBlack;
+  }
+
+  void update_anchor() {
+    if (this->anchor_->right_->left_->value_) {
+      this->anchor_->right_ = this->anchor_->right_->left_;
+      this->anchor_->right_->left_ = this->anchor_;
+    }
+    if (this->anchor_->left_->right_->value_) {
+      this->anchor_->left_ = this->anchor_->left_->right_;
+      this->anchor_->left_->right_ = this->anchor_;
+      this->anchor_->parent_ = this->anchor_->left_;
+    }
   }
 };
 
