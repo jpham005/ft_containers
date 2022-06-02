@@ -24,8 +24,8 @@ class rbtree_iterator {
 private:
   template <typename Key, typename Value, typename ExtractKey, typename Compare, typename Allocator>
   friend class rbtree;
+  friend class rbtree_iterator<T, const T*, const T&>;
   typedef rbtree_iterator<T, T*, T&>              iterator;
-  typedef rbtree_iterator<T, const T*, const T&>  const_iteraotr; // TODO
   typedef rbtree_node<T>                          node_type;
 
   node_type* get_next_node(node_type* curr) {
@@ -125,15 +125,42 @@ public:
   node* getnode() { return root_; } // TODO
   rbtree()
     : allocator_(allocator_type()), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
-//  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type());
-//  template <typename InputIt>
-//  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type()) {}
-//  rbtree(const rbtree& other) {}
 
+  explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type())
+    : allocator_(alloc), comparator_(comp), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
+
+  template <typename InputIt>
+  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type())
+    : allocator_(alloc), nil_(init_nil()), root_(this->nil), anchor_(init_nil()), size_(0) {
+    insert(first, last);
+  }
+
+  rbtree(const rbtree& other)
+    : nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {
+    allocator_ = other.allocator_;
+    extractor_ = other.extractor_;
+    comparator_ = other.comparator_;
+    for (const_iterator it = other.begin(); it != other.end(); ++it) insert(*it);
+  }
+
+  ~rbtree() {
+    if (this->root_->value_) clear_all_node(this->root_);
+
+    delete this->nil_;
+    delete this->anchor_;
+  }
+
+  rbtree& operator=(const rbtree& other) {
+    rbtree cp(other);
+    this->swap(cp);
+    return *this;
+  }
+
+  allocator_type get_allocator() const throw() { return this->allocator_; }
 
   /*
   ======================================================================================================================
-   iterator
+  iterator
   ======================================================================================================================
    */
 
@@ -155,7 +182,7 @@ public:
 
   /*
   ======================================================================================================================
-   capacity
+  capacity
   ======================================================================================================================
   */
 
@@ -169,7 +196,7 @@ public:
 
   /*
   ======================================================================================================================
-   modifier
+  modifier
   ======================================================================================================================
   */
 
@@ -186,7 +213,10 @@ public:
       y = x;
       if (compare(z, x)) x = x->left_;
       else if (compare(x, z)) x = x->right_;
-      else return ft::make_pair(iterator(x), false);
+      else {
+        this->destroy_node(z);
+        return ft::make_pair(iterator(x), false);
+      }
     }
 
     z->parent_ = y;
@@ -225,7 +255,10 @@ public:
       }
     }
 
-    if (!(compare(z, x) || compare(x, z))) return iterator(x);
+    if (!(compare(z, x) || compare(x, z))) {
+      destroy_node(z);
+      return iterator(x);
+    }
 
     x = y;
     while (x->value_) {
@@ -250,6 +283,32 @@ public:
   template <typename InputIt>
   void insert(InputIt first, InputIt last) { for (; first != last; ++first) insert(*first); }
 
+  void swap(rbtree& other) {
+    key_compare     temp_comparator_ = other.comparator_;
+    allocator_type  temp_allocator_ = other.allocator_;
+    extract         temp_extractor_ = other.extractor_;
+    node*           temp_nil_ = other.nil_;
+    node*           temp_root_ = other.root_;
+    node*           temp_anchor_ = other.anchor_;
+    size_type       temp_size_ = other.size_;
+
+    other.comparator_ = this->comparator_;
+    other.allocator_ = this->allocator_;
+    other.extractor_ = this->extractor_;
+    other.nil_ = this->nil_;
+    other.root_ = this->root_;
+    other.anchor_ = this->anchor_;
+    other.size_ = this->size_;
+
+    this->comparator_ = temp_comparator_;
+    this->allocator_ = temp_allocator_;
+    this->extractor_ = temp_extractor_;
+    this->nil_ = temp_nil_;
+    this->root_ = temp_root_;
+    this->anchor_ = temp_anchor_;
+    this->size_ = temp_size_;
+  }
+
 private:
   node* init_node(const_reference value) {
     node* ret = new node;
@@ -264,13 +323,28 @@ private:
 
   node* init_nil() {
     node* ret = new node;
+    ret->left_ = NULL;
+
     ret->value_ = NULL;
     ret->color_ = kRBTreeColorBlack;
     return ret;
   }
 
+  void destroy_node(node* target) {
+    this->allocator_.deallocate(target->value_, 1);
+    delete target;
+  }
+
   bool compare(node* n1, node* n2) {
     return this->comparator_(this->extractor_(n1->value_), this->extractor_(n2->value_));
+  }
+
+  void clear_all_node(node* curr) {
+    if (!curr->value_) return;
+
+    clear_all_node(curr->left_);
+    clear_all_node(curr->right_);
+    destroy_node(curr);
   }
 
   void left_rotate(node* x) {

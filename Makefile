@@ -1,7 +1,7 @@
 NAME        :=  ft_containers
 
 CXX         :=  ~/goinfre/clang14/bin/clang++
-CXXFLAGS    :=  -std=c++98 -Wall -Wextra -Werror -g -pedantic -fsanitize=undefined -fsanitize=address
+CXXFLAGS    :=  -std=c++98 -Wall -Wextra -Werror -g3 -pedantic -fsanitize=undefined -fsanitize=address
 
 CLASS       :=
 INTERFACE   :=

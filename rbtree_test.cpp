@@ -134,6 +134,24 @@ int main() {
     std::cout << it->first << ", " << it->second << std::endl;
 
   std::cout << "====================" << std::endl;
+  std::cout << "copy constructor" << std::endl;
+  rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > cp(tree);
+  for (iter it = cp.begin(); it != cp.end(); it++)
+    std::cout << it->first << ", " << it->second << std::endl;
+
+  std::cout << "====================" << std::endl;
+  std::cout << "const / non const comapre" << std::endl;
+  const rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > ccp(cp);
+//  cit->first = 2;;
+  if (ccp.begin() != cp.end()) std::cout << "compared" << std::endl;
+
+  std::cout << "====================" << std::endl;
+  std::cout << "swap, assign" << std::endl;
+  rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > assign;
+  assign = tree;
+  for (iter it = assign.begin(); it != assign.end(); it++)
+    std::cout << it->first << ", " << it->second << std::endl;
+  std::cout << "====================" << std::endl;
 //  oit oit_ = a.end();
 //  (--oit_)->first;
 //  std::cout << (--oit_)->first << std::endl;

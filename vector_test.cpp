@@ -34,4 +34,7 @@ int main() {
   iter it = a.begin();
   it++;
   std::cout << (*(++it)) << std::endl;
+
+  const ft::vector<int> ca(a);
+  if (ca.begin() != a.begin()) std::cout << "compared" << std::endl;
 }
