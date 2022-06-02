@@ -108,7 +108,14 @@ int main() {
   std::cout << "capacity" << std::endl;
   rbtree<char, ft::pair<char, char>, use_key<char> > max;
   std::cout << tree.empty() << ", " << tree.size() << ", " << max.max_size() << std::endl;
-  std::map<char, char> a;
+  std::map<std::string, std::string> a;
+  std::allocator<decltype(a)::value_type> ab;
+  std::cout << ab.max_size() << std::endl;
+  std::cout << sizeof(decltype(a)::value_type) << std::endl;
+  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / sizeof(decltype(a)::value_type) << std::endl;
+//  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / sizeof(decltype(a)::) << std::endl;
+  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / 16 << std::endl;
+  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / 40 << std::endl;
   std::cout << a.max_size() << std::endl;
   std::cout << "====================" << std::endl;
   std::cout << "end iterator --" << std::endl;

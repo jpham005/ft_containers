@@ -37,4 +37,8 @@ int main() {
 
   const ft::vector<int> ca(a);
   if (ca.begin() != a.begin()) std::cout << "compared" << std::endl;
+
+  std::vector<int> stda;
+  std::cout << a.max_size() << std::endl;
+  std::cout << stda.max_size() << std::endl;
 }
