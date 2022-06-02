@@ -14,6 +14,11 @@ struct use_first {
   first operator()(const ft::pair<first, last>* pair) { return pair->first; }
 };
 
+template <typename first, typename last>
+struct use_std_first {
+  first operator() (const std::pair<first, last>* pair) { return pair->first; }
+};
+
 template <
   typename Key, typename Value, typename ExtractKey,
   typename Compare, typename Allocator
@@ -75,46 +80,60 @@ int main() {
   std::cout << tree.empty() << std::endl;
   ft::pair<int, std::string> test = ft::make_pair(1, "1111");
   std::cout << "==========" << std::endl;
-  printinsert(tree.insert(test));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
+  std::cout << "insert 1" << std::endl;
+  printinsert(tree.insert(test)); // insert(1)
   printinsert(tree.insert(ft::make_pair(7, "777777")));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   printinsert(tree.insert(ft::make_pair(8, "88")));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   printinsert(tree.insert(ft::make_pair(2, "2222")));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   printinsert(tree.insert(ft::make_pair(4, "4444")));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   printinsert(tree.insert(ft::make_pair(5, "5555")));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   printinsert(tree.insert(ft::make_pair(6, "6666")));
-//  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   printinsert(tree.insert(ft::make_pair(3, "3333")));
   printinsert(tree.insert(ft::make_pair(1, "1111")));
-  std::cout << "iterinsert" << (++tree.insert(tree.end(), ft::make_pair(5, "0000")))->first << std::endl;
-  std::cout << "result " << test_valid_tree<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
+  std::cout << "insert 2 " << (--++tree.insert(tree.end(), ft::make_pair(0, "0000")))->first << std::endl; // insert(2)
+  std::cout << "is valid " << test_valid_tree<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode()) << std::endl;
 //  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
   typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::iterator iter;
   std::cout << "====================" << std::endl;
+  std::cout << "iterator" << std::endl;
   for (iter it = tree.begin(); it != tree.end(); it++) {
     std::cout << it->first << ", " << it->second << std::endl;
   }
   std::cout << "====================" << std::endl;
+  std::cout << "reverse_iterator" << std::endl;
   typedef rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::reverse_iterator riter;
   for (riter rit = tree.rbegin(); rit != tree.rend(); rit++)
     std::cout << rit->first << ", " << rit->second << std::endl;
   std::cout << "====================" << std::endl;
+  std::cout << "capacity" << std::endl;
   rbtree<char, ft::pair<char, char>, use_key<char> > max;
   std::cout << tree.empty() << ", " << tree.size() << ", " << max.max_size() << std::endl;
   std::map<char, char> a;
   std::cout << a.max_size() << std::endl;
   std::cout << "====================" << std::endl;
+  std::cout << "end iterator --" << std::endl;
 
-  std::cout << (--tree.rend())->first << std::endl;
   std::cout << (--tree.end())->first << std::endl;
+  std::cout << (--tree.rend())->first << std::endl;
 
   std::cout << "====================" << std::endl;
+  std::cout << "insert 3" << std::endl;
 
+  std::map<int, std::string> map;
+  map.insert(std::make_pair(1, "1111"));
+  map.insert(std::make_pair(2, "2222"));
+  map.insert(std::make_pair(3, "3"));
+  map.insert(std::make_pair(4, "4"));
+  map.insert(std::make_pair(5, "5"));
+  map.insert(std::make_pair(6, "6"));
+  map.insert(std::make_pair(7, "7"));
+  rbtree<int, std::pair<int, std::string>, use_std_first<int, std::string> > insert3;
+  typedef rbtree<int, std::pair<int, std::string>, use_std_first<int, std::string> >::iterator iter3;
+  insert3.insert(map.begin(), map.end());
+  for (iter3 it = insert3.begin(); it != insert3.end(); ++it)
+    std::cout << it->first << ", " << it->second << std::endl;
+
+  std::cout << "====================" << std::endl;
 //  oit oit_ = a.end();
 //  (--oit_)->first;
 //  std::cout << (--oit_)->first << std::endl;

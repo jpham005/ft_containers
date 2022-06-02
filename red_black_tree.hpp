@@ -213,11 +213,21 @@ public:
     node* y = NULL;
     node* z = init_node(value);
 
-    if (compare(z, x)) while (x->parent_->value_ && compare(z, x)) x = x->parent_;
-    else if (compare(x, z)) while (x->parent_->value_ && compare(x->parent_, z)) x = x->parent_;
+    if (compare(z, x)) {
+      while (x->parent_->value_ && compare(z, x)) {
+        y = x->parent_;
+        x = x->parent_;
+      }
+    } else if (compare(x, z)) {
+      while (x->parent_->value_ && compare(x, z)) {
+        y = x;
+        x = x->parent_;
+      }
+    }
 
     if (!(compare(z, x) || compare(x, z))) return iterator(x);
 
+    x = y;
     while (x->value_) {
       y = x;
       if (compare(z, x)) x = x->left_;
@@ -237,8 +247,8 @@ public:
     return iterator(z);
   }
 
-//  template <typename InputIt>
-//  void insert(InputIt first, InputIt last) {}
+  template <typename InputIt>
+  void insert(InputIt first, InputIt last) { for (; first != last; ++first) insert(*first); }
 
 private:
   node* init_node(const_reference value) {
