@@ -111,33 +111,39 @@ public:
   typedef ft::reverse_iterator<iterator>                              reverse_iterator;
   typedef ft::reverse_iterator<const_iterator>                        const_reverse_iterator;
   typedef ExtractKey                                                  extract;
+  typedef typename allocator_type::template rebind<node>::other       node_allocator_type;
 
 private:
-  allocator_type  allocator_;
-  extract         extractor_;
-  key_compare     comparator_;
-  node*           nil_;
-  node*           root_;
-  node*           anchor_;
-  size_type       size_;
+  allocator_type      allocator_;
+  node_allocator_type node_allocator_;
+  extract             extractor_;
+  key_compare         comparator_;
+  node*               nil_;
+  node*               root_;
+  node*               anchor_;
+  size_type           size_;
 
 public:
   node* getnode() { return root_; } // TODO
   rbtree()
-    : allocator_(allocator_type()), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
+    : allocator_(allocator_type()), node_allocator_(node_allocator_type()),
+      nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 
   explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type())
-    : allocator_(alloc), comparator_(comp), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
+    : allocator_(alloc), node_allocator_(node_allocator_type()), comparator_(comp),
+      nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 
   template <typename InputIt>
   rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type())
-    : allocator_(alloc), nil_(init_nil()), root_(this->nil), anchor_(init_nil()), size_(0) {
+    : allocator_(alloc), node_allocator_(node_allocator_type()),
+      nil_(init_nil()), root_(this->nil), anchor_(init_nil()), size_(0) {
     insert(first, last);
   }
 
   rbtree(const rbtree& other)
     : nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {
     allocator_ = other.allocator_;
+    node_allocator_ = other.node_allocator_;
     extractor_ = other.extractor_;
     comparator_ = other.comparator_;
     for (const_iterator it = other.begin(); it != other.end(); ++it) insert(*it);
@@ -190,8 +196,9 @@ public:
 
   size_type size() const throw() { return this->size_; }
 
-  size_type max_size() const throw() { // TODO
-    return std::numeric_limits<difference_type>::max(), this->allocator_.max_size();
+  size_type max_size() const throw() {
+    return std::numeric_limits<difference_type>::max(), std::numeric_limits<size_type>::max()
+      / (sizeof(node) + sizeof(value_type));
   }
 
   /*
@@ -199,6 +206,15 @@ public:
   modifier
   ======================================================================================================================
   */
+
+  void clear() throw() {
+    this->clear_all_node(this->root_);
+    this->size_ = 0;
+    this->anchor_->parent_ = NULL;
+    this->anchor_->left_ = NULL;
+    this->anchor_->right_ = NULL;
+    this->root_ = this->nil_;
+  }
 
   ft::pair<iterator, bool> insert(const_reference value) {
     if (!this->size_) {
@@ -284,16 +300,18 @@ public:
   void insert(InputIt first, InputIt last) { for (; first != last; ++first) insert(*first); }
 
   void swap(rbtree& other) {
-    key_compare     temp_comparator_ = other.comparator_;
-    allocator_type  temp_allocator_ = other.allocator_;
-    extract         temp_extractor_ = other.extractor_;
-    node*           temp_nil_ = other.nil_;
-    node*           temp_root_ = other.root_;
-    node*           temp_anchor_ = other.anchor_;
-    size_type       temp_size_ = other.size_;
+    key_compare         temp_comparator_ = other.comparator_;
+    allocator_type      temp_allocator_ = other.allocator_;
+    node_allocator_type temp_node_allocator_ = other.node_allocator_;
+    extract             temp_extractor_ = other.extractor_;
+    node*               temp_nil_ = other.nil_;
+    node*               temp_root_ = other.root_;
+    node*               temp_anchor_ = other.anchor_;
+    size_type           temp_size_ = other.size_;
 
     other.comparator_ = this->comparator_;
     other.allocator_ = this->allocator_;
+    other.node_allocator_ = this->node_allocator_;
     other.extractor_ = this->extractor_;
     other.nil_ = this->nil_;
     other.root_ = this->root_;
@@ -302,6 +320,7 @@ public:
 
     this->comparator_ = temp_comparator_;
     this->allocator_ = temp_allocator_;
+    this->node_allocator_ = temp_node_allocator_;
     this->extractor_ = temp_extractor_;
     this->nil_ = temp_nil_;
     this->root_ = temp_root_;
@@ -309,9 +328,72 @@ public:
     this->size_ = temp_size_;
   }
 
+  /*
+  ======================================================================================================================
+  Lookup
+  ======================================================================================================================
+  */
+
+  size_type count(const key_type& key) const { return (this->find(key) != this->end()); }
+
+  iterator find(const key_type& key) {
+    node* x = this->root_;
+    while (x->value_) {
+      if (this->comparator_(this->extractor_(x->value_), key)) x = x->right_;
+      else if (this->comparator_(key, this->extractor_(x->value_))) x = x->left_;
+      else return iterator(x);
+    }
+    return this->end();
+  }
+
+  const_iterator find(const key_type& key) const {
+    node* x = this->root_;
+    while (x->value_) {
+      if (this->comparator_(this->extractor_(x->value_), key)) x = x->right_;
+      else if (this->comparator_(key, this->extractor_(x->value_))) x = x->left_;
+      else return const_iterator(x);
+    }
+    return this->end();
+  }
+
+  ft::pair<iterator, iterator> equal_range(const key_type& key) {
+    return ft::make_pair(this->lower_bound(key), this->upper_bound(key));
+  }
+
+  ft::pair<iterator, iterator> equal_range(const key_type& key) const {
+    return ft::make_pair(this->lower_bound(key), this->upper_bound(key));
+  }
+
+  iterator lower_bound(const key_type& key) { return this->find(key); }
+
+  const_iterator lower_bound(const key_type& key) const { return this->find(key); }
+
+  iterator upper_bound(const key_type& key) {
+    iterator ret = this->find(key);
+    if (ret->node_->value_) return ++ret;
+    else return ret;
+  }
+
+  iterator upper_bound(const key_type& key) const {
+    const_iterator ret = this->find(key);
+    if (ret->node_->value_) return ++ret;
+    else return ret;
+  }
+
+  /*
+  ======================================================================================================================
+  Observers
+  ======================================================================================================================
+  */
+
+  key_compare key_comp() const { return this->comparator_; }
+
+  // value_compare is implemented individually
+
 private:
   node* init_node(const_reference value) {
-    node* ret = new node;
+//    node* ret = new node;
+    node* ret = this->node_allocator_.allocate(1);
     ret->parent_ = nil_;
     ret->left_ = nil_;
     ret->right_ = nil_;
@@ -323,8 +405,9 @@ private:
 
   node* init_nil() {
     node* ret = new node;
+    ret->parent_ = NULL;
     ret->left_ = NULL;
-
+    ret->right_ = NULL;
     ret->value_ = NULL;
     ret->color_ = kRBTreeColorBlack;
     return ret;
@@ -332,7 +415,7 @@ private:
 
   void destroy_node(node* target) {
     this->allocator_.deallocate(target->value_, 1);
-    delete target;
+    this->node_allocator_.deallocate(target, 1);
   }
 
   bool compare(node* n1, node* n2) {
@@ -439,8 +522,4 @@ private:
   }
 };
 
-// iterators
-// capacity: empty, size, max_size
-// modifiers: clear, insert, erase, swap
-// lookup: count, find, equal_range, lower_bound, upper_bound
-// observers: key_comp, value_comp
+// modifiers: erase

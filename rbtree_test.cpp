@@ -12,6 +12,7 @@ struct use_key {
 template <typename first, typename last>
 struct use_first {
   first operator()(const ft::pair<first, last>* pair) { return pair->first; }
+  const first operator()(const ft::pair<first, last>* pair) const { return pair->first; }
 };
 
 template <typename first, typename last>
@@ -108,15 +109,6 @@ int main() {
   std::cout << "capacity" << std::endl;
   rbtree<char, ft::pair<char, char>, use_key<char> > max;
   std::cout << tree.empty() << ", " << tree.size() << ", " << max.max_size() << std::endl;
-  std::map<std::string, std::string> a;
-  std::allocator<decltype(a)::value_type> ab;
-  std::cout << ab.max_size() << std::endl;
-  std::cout << sizeof(decltype(a)::value_type) << std::endl;
-  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / sizeof(decltype(a)::value_type) << std::endl;
-//  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / sizeof(decltype(a)::) << std::endl;
-  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / 16 << std::endl;
-  std::cout <<  std::numeric_limits<ptrdiff_t>::max() / 40 << std::endl;
-  std::cout << a.max_size() << std::endl;
   std::cout << "====================" << std::endl;
   std::cout << "end iterator --" << std::endl;
 
@@ -149,6 +141,7 @@ int main() {
   std::cout << "====================" << std::endl;
   std::cout << "const / non const comapre" << std::endl;
   const rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> > ccp(cp);
+  typedef const rbtree<int, ft::pair<int, std::string>, use_first<int, std::string> >::const_iterator citer;
 //  cit->first = 2;;
   if (ccp.begin() != cp.end()) std::cout << "compared" << std::endl;
 
@@ -159,6 +152,31 @@ int main() {
   for (iter it = assign.begin(); it != assign.end(); it++)
     std::cout << it->first << ", " << it->second << std::endl;
   std::cout << "====================" << std::endl;
+  std::cout << "clear" << std::endl;
+  iter pastend = tree.end();
+  tree.clear();
+  tree.insert(ft::make_pair(1, "asdf"));
+  for (iter it = tree.begin(); it != pastend; it++)
+    std::cout << it->first << ", " << it->second << std::endl;
+  std::cout << "====================" << std::endl;
+  std::cout << "observers" << std::endl;
+  rbtree<int, std::string, use_first<int, std::string> >::key_compare comp = tree.key_comp();
+  std::cout << comp(tree.insert(ft::make_pair(3, "3333")).first->first, tree.insert(ft::make_pair(2, "2222")).first->first) << std::endl;
+  std::cout << comp(tree.insert(ft::make_pair(2, "2222")).first->first, tree.insert(ft::make_pair(3, "3333")).first->first);
+  std::cout << "====================" << std::endl;
+  std::cout << "find" << std::endl;
+  iter found = tree.find(3);
+  std::cout << found->first << ", " << found->second << std::endl;
+  citer cfound = ccp.find(3);
+  std::cout << cfound->first << ", " << found->second << std::endl;
+  std::cout << "====================" << std::endl;
+  std::cout << "count" << std::endl;
+  std::cout << tree.count(3) << std::endl;
+  std::cout << tree.count(999) << std::endl;
+  std::cout << "====================" << std::endl;
+  std::cout << "bound" << std::endl;
+  std::cout << ccp.lower_bound(3)->second << ", " << ccp.upper_bound(3)->second << std::endl;
+
 //  oit oit_ = a.end();
 //  (--oit_)->first;
 //  std::cout << (--oit_)->first << std::endl;
