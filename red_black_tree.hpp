@@ -299,6 +299,50 @@ public:
   template <typename InputIt>
   void insert(InputIt first, InputIt last) { for (; first != last; ++first) insert(*first); }
 
+  void erase(iterator pos) {
+    node* z = pos.node_;
+    node* y = z;
+    node* x;
+    char y_original_color = y->color_;
+
+    if (!z->left_->value_) {
+      x = z->right_;
+      this->transplant_node(z, z->right_);
+    } else if (!z->right_->value_) {
+      x = z->left_;
+      this->transplant_node(z, z->left_);
+    } else {
+      y = (++pos).node_;
+      y_original_color = y->color_;
+      x = y->right_;
+
+      if (y->parent_ != z) {
+        this->transplant_node(y, y->right_);
+        y->right_ = z->right_;
+        y->right_->parent_ = y;
+      }
+
+      this->transplant_node(z, y);
+      y->left_ = z->left_;
+      y->left_->parent_ = y;
+      y->color_ = z->color_;
+    }
+
+    this->destroy_node(z);
+    if (y_original_color == kRBTreeColorBlack) this->delete_fixup(x);
+  }
+
+  void erase(iterator first, iterator last) { for (; first != last; ++first) this->erase(first); }
+
+  size_type erase(const key_type& key) {
+    iterator target = this->find(key);
+
+    if (!target.node_->value_) return 0;
+
+    this->erase(target);
+    return 1;
+  }
+
   void swap(rbtree& other) {
     key_compare         temp_comparator_ = other.comparator_;
     allocator_type      temp_allocator_ = other.allocator_;
@@ -520,6 +564,19 @@ private:
       this->anchor_->parent_ = this->anchor_->left_;
     }
   }
-};
 
-// modifiers: erase
+  void transplant_node(node* dest, node* src) {
+    if (this->root_ == dest) this->root_ = src;
+    else if (dest == dest->parent_->left_) dest->parent_->left_ = src;
+    else dest->parent_->right_ = src;
+    src->parent_ = dest->parent_;
+  }
+
+  void delete_fixup(node* x) {
+    while ((x != this->root_) && (x->color_ = kRBTreeColorBlack)) {
+      if (x == x->parent_->left_) {
+
+      }
+    }
+  }
+};
