@@ -176,6 +176,8 @@ int main() {
   std::cout << "====================" << std::endl;
   std::cout << "bound" << std::endl;
   std::cout << ccp.lower_bound(3)->second << ", " << ccp.upper_bound(3)->second << std::endl;
+  for (iter it = cp.equal_range(3).first; it != cp.equal_range(3).second; it++)
+    std::cout << it->first << ", " << it->second << std::endl;
 
 //  oit oit_ = a.end();
 //  (--oit_)->first;

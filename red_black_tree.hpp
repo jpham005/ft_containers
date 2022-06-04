@@ -360,7 +360,7 @@ public:
     return ft::make_pair(this->lower_bound(key), this->upper_bound(key));
   }
 
-  ft::pair<iterator, iterator> equal_range(const key_type& key) const {
+  ft::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
     return ft::make_pair(this->lower_bound(key), this->upper_bound(key));
   }
 
@@ -370,13 +370,13 @@ public:
 
   iterator upper_bound(const key_type& key) {
     iterator ret = this->find(key);
-    if (ret->node_->value_) return ++ret;
+    if (ret.node_->value_) return ++ret;
     else return ret;
   }
 
-  iterator upper_bound(const key_type& key) const {
+  const_iterator upper_bound(const key_type& key) const {
     const_iterator ret = this->find(key);
-    if (ret->node_->value_) return ++ret;
+    if (ret.node_->value_) return ++ret;
     else return ret;
   }
 
