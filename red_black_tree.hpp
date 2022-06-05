@@ -305,9 +305,13 @@ public:
     node* x;
     char y_original_color = y->color_;
 
+    iterator new_begin = ++(this->begin());
+    iterator new_end = --(this->end());
+
     if (!z->left_->value_) {
       x = z->right_;
       this->transplant_node(z, z->right_);
+      if (!x->value_) x->parent_ = z; // TODO: when x == nil
     } else if (!z->right_->value_) {
       x = z->left_;
       this->transplant_node(z, z->left_);
@@ -320,12 +324,22 @@ public:
         this->transplant_node(y, y->right_);
         y->right_ = z->right_;
         y->right_->parent_ = y;
-      }
+      } else x->parent_ = y;
 
       this->transplant_node(z, y);
       y->left_ = z->left_;
       y->left_->parent_ = y;
       y->color_ = z->color_;
+    }
+
+    if (z == this->anchor_->right_) {
+      this->anchor_->right_ = new_begin.node_;
+      new_begin.node_->left_ = this->anchor_;
+    }
+
+    if (z == this->anchor_->left_) {
+      this->anchor_->left_ = new_end.node_;
+      new_end.node_->right_ = this->anchor_;
     }
 
     this->destroy_node(z);
@@ -573,10 +587,62 @@ private:
   }
 
   void delete_fixup(node* x) {
-    while ((x != this->root_) && (x->color_ = kRBTreeColorBlack)) {
-      if (x == x->parent_->left_) {
+    node* w;
 
+    while ((x != this->root_) && (x->color_ == kRBTreeColorBlack)) {
+      if (x == x->parent_->left_) {
+        w = x->parent_->right_;
+        if (w->color_ == kRBTreeColorRed) {
+          w->color_ = kRBTreeColorBlack;
+          x->parent_->color_ = kRBTreeColorRed;
+          this->left_rotate(x->parent_);
+          w = x->parent_->right_;
+        }
+
+        if ((w->left_->color_ == kRBTreeColorBlack) && (w->right_->color_ == kRBTreeColorBlack)) {
+          w->color_ = kRBTreeColorRed;
+          x = x->parent_;
+        } else {
+          if (w->right_->color_ == kRBTreeColorBlack) {
+            w->left_->color_ = kRBTreeColorBlack;
+            w->color_ = kRBTreeColorRed;
+            this->right_rotate(w);
+            w = x->parent_->right_;
+          }
+
+          w->color_ = x->parent_->color_;
+          x->parent_->color_ = kRBTreeColorBlack;
+          this->left_rotate(x->parent_);
+          x = this->root_;
+        }
+      } else {
+        w = x->parent_->left_;
+        if (w->color_ == kRBTreeColorRed) {
+          w->color_ = kRBTreeColorBlack;
+          x->parent_->color_ = kRBTreeColorRed;
+          this->right_rotate(x->parent_);
+          w = x->parent_->left_;
+        }
+
+        if ((w->left_->color_ == kRBTreeColorBlack) && (w->right_->color_ == kRBTreeColorBlack)) {
+          w->color_ = kRBTreeColorRed;
+          x = x->parent_;
+        } else {
+          if (w->left_->color_ == kRBTreeColorBlack) {
+            w->right_->color_ = kRBTreeColorBlack;
+            w->color_ = kRBTreeColorRed;
+            this->left_rotate(w);
+            w = x->parent_->left_;
+          }
+
+          w->color_ = x->parent_->color_;
+          x->parent_->color_ = kRBTreeColorBlack;
+          this->right_rotate(x->parent_);
+          x = this->root_;
+        }
       }
     }
+
+    x->color_ = kRBTreeColorBlack;
   }
 };

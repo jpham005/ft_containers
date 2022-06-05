@@ -179,6 +179,15 @@ int main() {
   for (iter it = cp.equal_range(3).first; it != cp.equal_range(3).second; it++)
     std::cout << it->first << ", " << it->second << std::endl;
 
+  std::cout << "====================" << std::endl;
+  std::cout << "erase" << std::endl;
+  cp.erase(cp.begin());
+    testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(cp.getnode(), "root");
+  iter begin = cp.begin();
+  ++begin;
+  ++begin;
+  for (iter it = cp.begin(); it != cp.end(); it++)
+    std::cout << it->first << ", " << it->second << std::endl;
 //  oit oit_ = a.end();
 //  (--oit_)->first;
 //  std::cout << (--oit_)->first << std::endl;
