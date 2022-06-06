@@ -126,26 +126,23 @@ private:
 public:
   node* getnode() { return root_; } // TODO
   rbtree()
-    : allocator_(allocator_type()), node_allocator_(node_allocator_type()),
-      nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
+    : allocator_(), node_allocator_(), extractor_(),
+      comparator_(), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 
   explicit rbtree(const key_compare& comp, const allocator_type& alloc = allocator_type())
-    : allocator_(alloc), node_allocator_(node_allocator_type()), comparator_(comp),
+    : allocator_(alloc), node_allocator_(), extractor_(), comparator_(comp),
       nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
 
   template <typename InputIt>
-  rbtree(InputIt first, InputIt last, const allocator_type& alloc = allocator_type())
-    : allocator_(alloc), node_allocator_(node_allocator_type()),
-      nil_(init_nil()), root_(this->nil), anchor_(init_nil()), size_(0) {
+  rbtree(InputIt first, InputIt last, const Compare& comp = Compare(), const allocator_type& alloc = allocator_type())
+    : allocator_(alloc), node_allocator_(), extractor_(), comparator_(comp),
+      nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {
     insert(first, last);
   }
 
   rbtree(const rbtree& other)
-    : nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {
-    allocator_ = other.allocator_;
-    node_allocator_ = other.node_allocator_;
-    extractor_ = other.extractor_;
-    comparator_ = other.comparator_;
+    : allocator_(other.allocator_), node_allocator_(other.node_allocator_), extractor_(other.extractor_),
+      comparator_(other.comparator_), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {
     for (const_iterator it = other.begin(); it != other.end(); ++it) insert(*it);
   }
 
@@ -168,22 +165,18 @@ public:
   ======================================================================================================================
   iterator
   ======================================================================================================================
-   */
+  */
 
   iterator begin() throw() { return iterator(this->anchor_->right_); }
-
   const_iterator begin() const throw() { return const_iterator(this->anchor_->right_); }
 
   iterator end() throw() { return iterator(this->anchor_); }
-
   const_iterator end() const throw() { return const_iterator(this->anchor_); }
 
   reverse_iterator rbegin() throw() { return reverse_iterator(iterator(this->anchor_)); }
-
   const_reverse_iterator rbegin() const throw() { return reverse_iterator(const_iterator(this->anchor_)); }
 
   reverse_iterator rend() throw() { return reverse_iterator(iterator(this->anchor_->right_)); }
-
   const_reverse_iterator rend() const throw() { return const_reverse_iterator(const_iterator(this->right_)); }
 
   /*
@@ -311,7 +304,6 @@ public:
     if (!z->left_->value_) {
       x = z->right_;
       this->transplant_node(z, z->right_);
-      if (!x->value_) x->parent_ = z; // TODO: when x == nil
     } else if (!z->right_->value_) {
       x = z->left_;
       this->transplant_node(z, z->left_);
@@ -332,6 +324,9 @@ public:
       y->color_ = z->color_;
     }
 
+
+    if (y_original_color == kRBTreeColorBlack) this->delete_fixup(x);
+
     if (z == this->anchor_->right_) {
       this->anchor_->right_ = new_begin.node_;
       new_begin.node_->left_ = this->anchor_;
@@ -342,11 +337,18 @@ public:
       new_end.node_->right_ = this->anchor_;
     }
 
+    --this->size_;
     this->destroy_node(z);
-    if (y_original_color == kRBTreeColorBlack) this->delete_fixup(x);
   }
 
-  void erase(iterator first, iterator last) { for (; first != last; ++first) this->erase(first); }
+  void erase(iterator first, iterator last) {
+    iterator temp;
+    while (first != last) {
+      temp = first;
+      ++first;
+      this->erase(temp);
+    }
+  }
 
   size_type erase(const key_type& key) {
     iterator target = this->find(key);
@@ -450,13 +452,12 @@ public:
 
 private:
   node* init_node(const_reference value) {
-//    node* ret = new node;
     node* ret = this->node_allocator_.allocate(1);
     ret->parent_ = nil_;
     ret->left_ = nil_;
     ret->right_ = nil_;
     ret->value_ = this->allocator_.allocate(1);
-    *(ret->value_) = value;
+    this->allocator_.construct(ret->value_, value);
     ret->color_ = kRBTreeColorRed;
     return ret;
   }
@@ -472,6 +473,7 @@ private:
   }
 
   void destroy_node(node* target) {
+    this->allocator_.destroy(target->value_);
     this->allocator_.deallocate(target->value_, 1);
     this->node_allocator_.deallocate(target, 1);
   }
@@ -612,6 +614,7 @@ private:
 
           w->color_ = x->parent_->color_;
           x->parent_->color_ = kRBTreeColorBlack;
+          w->right_->color_ = kRBTreeColorBlack;
           this->left_rotate(x->parent_);
           x = this->root_;
         }
@@ -637,6 +640,7 @@ private:
 
           w->color_ = x->parent_->color_;
           x->parent_->color_ = kRBTreeColorBlack;
+          w->left_->color_ = kRBTreeColorBlack;
           this->right_rotate(x->parent_);
           x = this->root_;
         }

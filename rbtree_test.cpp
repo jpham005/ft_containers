@@ -181,17 +181,12 @@ int main() {
 
   std::cout << "====================" << std::endl;
   std::cout << "erase" << std::endl;
-  cp.erase(cp.begin());
-    testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(cp.getnode(), "root");
-  iter begin = cp.begin();
-  ++begin;
-  ++begin;
-  for (iter it = cp.begin(); it != cp.end(); it++)
+  cp.erase(cp.begin(), cp.end());
+  for (riter it = cp.rbegin(); it != cp.rend(); it++)
     std::cout << it->first << ", " << it->second << std::endl;
+  std::cout << "is empty " << (cp.size() == 0) << std::endl;
 //  oit oit_ = a.end();
 //  (--oit_)->first;
 //  std::cout << (--oit_)->first << std::endl;
 //  testprint<int, ft::pair<int, std::string>, use_first<int, std::string>, std::less<int>, std::allocator<int> >(tree.getnode(), "root");
-
-
 }
