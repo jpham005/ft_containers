@@ -204,8 +204,8 @@ public:
     this->clear_all_node(this->root_);
     this->size_ = 0;
     this->anchor_->parent_ = NULL;
-    this->anchor_->left_ = NULL;
-    this->anchor_->right_ = NULL;
+    this->anchor_->left_ = this->anchor_;
+    this->anchor_->right_ = this->anchor_;
     this->root_ = this->nil_;
   }
 
@@ -252,24 +252,14 @@ public:
     node* y = NULL;
     node* z = init_node(value);
 
-    if (compare(z, x)) {
-      while (x->parent_->value_ && compare(z, x)) {
-        y = x->parent_;
-        x = x->parent_;
-      }
-    } else if (compare(x, z)) {
-      while (x->parent_->value_ && compare(x, z)) {
-        y = x;
-        x = x->parent_;
-      }
-    }
+    if (compare(z, x)) while (x->parent_->value_ && compare(z, x)) x = x->parent_;
+    else if (compare(x, z)) while (x->parent_->value_ && compare(x, z)) x = x->parent_;
 
     if (!(compare(z, x) || compare(x, z))) {
       destroy_node(z);
       return iterator(x);
     }
 
-    x = y;
     while (x->value_) {
       y = x;
       if (compare(z, x)) x = x->left_;
@@ -299,7 +289,7 @@ public:
     char y_original_color = y->color_;
 
     iterator new_begin = ++(this->begin());
-    iterator new_end = --(this->end());
+    iterator new_end = ----(this->end());
 
     if (!z->left_->value_) {
       x = z->right_;
@@ -308,19 +298,19 @@ public:
       x = z->left_;
       this->transplant_node(z, z->left_);
     } else {
-      y = (++pos).node_;
+      y = (--pos).node_;
       y_original_color = y->color_;
-      x = y->right_;
+      x = y->left_;
 
       if (y->parent_ != z) {
-        this->transplant_node(y, y->right_);
-        y->right_ = z->right_;
-        y->right_->parent_ = y;
+        this->transplant_node(y, y->left_);
+        y->left_ = z->left_;
+        y->left_->parent_ = y;
       } else x->parent_ = y;
 
       this->transplant_node(z, y);
-      y->left_ = z->left_;
-      y->left_->parent_ = y;
+      y->right_ = z->right_;
+      y->right_->parent_ = y;
       y->color_ = z->color_;
     }
 
@@ -424,20 +414,28 @@ public:
     return ft::make_pair(this->lower_bound(key), this->upper_bound(key));
   }
 
-  iterator lower_bound(const key_type& key) { return this->find(key); }
+  iterator lower_bound(const key_type& key) {
+    iterator it = this->begin();
+    for (; (it != this->end()) && this->comparator_(this->extractor_(it.node_->value_), key); ++it);
+    return it;
+  }
 
-  const_iterator lower_bound(const key_type& key) const { return this->find(key); }
+  const_iterator lower_bound(const key_type& key) const {
+    const_iterator it = this->begin();
+    for (; (it != this->end()) && this->comparator_(this->extractor_(it.node_->value_), key); ++it);
+    return it;
+  }
 
   iterator upper_bound(const key_type& key) {
-    iterator ret = this->find(key);
-    if (ret.node_->value_) return ++ret;
-    else return ret;
+    iterator it = this->begin();
+    for (; ((it != this->end()) && !this->comparator_(key, this->extractor_(it.node_->value_))) ;++it);
+    return it;
   }
 
   const_iterator upper_bound(const key_type& key) const {
-    const_iterator ret = this->find(key);
-    if (ret.node_->value_) return ++ret;
-    else return ret;
+    const_iterator it = this->begin();
+    for (; ((it != this->end()) && !this->comparator_(key, this->extractor_(it.node_->value_))) ;++it);
+    return it;
   }
 
   /*
@@ -448,7 +446,15 @@ public:
 
   key_compare key_comp() const { return this->comparator_; }
 
-  // value_compare is implemented individually
+  void test_print(node* nd, std::string str) { // TODO
+    if (!nd->value_){
+      std::cout << "end" << std::endl;
+      return;
+    }
+    std::cout << str << ", " << nd->value_->first << ", " << static_cast<int>(nd->color_) << std::endl;
+    test_print(nd->left_, "left");
+    test_print(nd->right_, "right");
+  }
 
 private:
   node* init_node(const_reference value) {
@@ -463,7 +469,7 @@ private:
   }
 
   node* init_nil() {
-    node* ret = new node;
+    node* ret = this->node_allocator_.allocate(1);
     ret->parent_ = NULL;
     ret->left_ = NULL;
     ret->right_ = NULL;

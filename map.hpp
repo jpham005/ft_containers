@@ -30,7 +30,6 @@ namespace ft {
       typedef typename Pair::first_type  first_type;
       typedef typename Pair::second_type second_type;
 
-      const first_type&  operator()(const Pair* pair) { return pair->first; }
       const first_type&  operator()(const Pair* pair) const { return pair->first; }
     };
 
@@ -39,6 +38,7 @@ namespace ft {
     tree  tree_;
 
   public:
+    tree& gettree() { return this->tree_; }
     typedef typename tree::iterator               iterator;
     typedef typename tree::const_iterator         const_iterator;
     typedef typename tree::reverse_iterator       reverse_iterator;
@@ -57,7 +57,10 @@ namespace ft {
       typedef typename bftype::second_argument_type second_argument_type;
 
       value_compare() : comp() {}
-      result_type operator()(first_argument_type lhs, second_argument_type rhs) { return comp(lhs, rhs); }
+
+      result_type operator()(const first_argument_type lhs, const second_argument_type rhs) const {
+        return comp(lhs.first, rhs.first);
+      }
     };
 
     map() : tree_() {}
@@ -145,7 +148,7 @@ namespace ft {
 
     size_type erase(const key_type& key) { return tree_.erase(key); }
 
-    void swap(const map& other) { tree_.swap(other.tree_); }
+    void swap(map& other) { tree_.swap(other.tree_); }
 
     /*
     ====================================================================================================================
@@ -183,7 +186,7 @@ namespace ft {
   };
 
   template <typename Key, typename T, typename Compare, typename Alloc>
-  void  swap(ft::map<Key, T, Compare, Alloc> lhs, ft::map<Key, T, Compare, Alloc> rhs) { lhs.swap(rhs); }
+  void  swap(ft::map<Key, T, Compare, Alloc>& lhs, ft::map<Key, T, Compare, Alloc>& rhs) { lhs.swap(rhs); }
 
   template <typename Key, typename T, typename Compare, typename Alloc>
   bool operator<(const ft::map<Key, T, Compare, Alloc>& lhs, const ft::map<Key, T, Compare, Alloc>& rhs) {
