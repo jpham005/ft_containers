@@ -235,27 +235,25 @@ void	receive_set(NS::set<T>) {}
 
 int	main()
 {
-  setInt	set1;
-  compare_all(set1, set1);
+  std::list<int>	lst;
 
-  setInt	set2;
-  compare_all(set2, set2);
+  lst.push_back(4);
+  lst.push_back(1);
+  lst.push_back(5);
+  lst.push_back(4);
+  lst.push_back(3);
 
-  set1.insert(1);
-  compare_all(set1, set2);
+  setInt	st(lst.begin(), lst.end());
+  std::cout << st.empty() << st.size() << '\n';
 
-  set2.insert(1);
-  compare_all(set1, set2);
+  setInt::size_type	size = st.max_size();
+  (void)size;
 
-  set1.insert(2);
-  compare_all(set1, set2);
+  int	i = 0;
+  while (!st.empty())
+    st.erase(i++);
 
-  set2.insert(2);
-  compare_all(set1, set2);
-
-  set1.insert(3);
-  set2.insert(4);
-  compare_all(set1, set2);
+  std::cout << st.empty() << st.size() << '\n';
 
   return (0);
 }
