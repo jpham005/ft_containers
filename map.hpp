@@ -28,7 +28,6 @@ namespace ft {
     template <typename Pair>
     struct use_first {
       typedef typename Pair::first_type  first_type;
-      typedef typename Pair::second_type second_type;
 
       const first_type&  operator()(const Pair* pair) const { return pair->first; }
     };
@@ -38,7 +37,6 @@ namespace ft {
     tree  tree_;
 
   public:
-    tree& gettree() { return this->tree_; }
     typedef typename tree::iterator               iterator;
     typedef typename tree::const_iterator         const_iterator;
     typedef typename tree::reverse_iterator       reverse_iterator;

@@ -174,10 +174,10 @@ public:
   const_iterator end() const throw() { return const_iterator(this->anchor_); }
 
   reverse_iterator rbegin() throw() { return reverse_iterator(iterator(this->anchor_)); }
-  const_reverse_iterator rbegin() const throw() { return reverse_iterator(const_iterator(this->anchor_)); }
+  const_reverse_iterator rbegin() const throw() { return const_reverse_iterator(const_iterator(this->anchor_)); }
 
   reverse_iterator rend() throw() { return reverse_iterator(iterator(this->anchor_->right_)); }
-  const_reverse_iterator rend() const throw() { return const_reverse_iterator(const_iterator(this->right_)); }
+  const_reverse_iterator rend() const throw() { return const_reverse_iterator(const_iterator(this->anchor_->right_)); }
 
   /*
   ======================================================================================================================
@@ -279,6 +279,45 @@ public:
     return iterator(z);
   }
 
+  const_iterator insert(const_iterator hint, const_reference value) {
+    if (!this->size_) {
+      insert_root(value);
+      return iterator(this->root_);
+    }
+
+    node* x = hint.node_;
+    if (x == this->anchor_)
+      x = x->right_;
+    node* y = NULL;
+    node* z = init_node(value);
+
+    if (compare(z, x)) while (x->parent_->value_ && compare(z, x)) x = x->parent_;
+    else if (compare(x, z)) while (x->parent_->value_ && compare(x, z)) x = x->parent_;
+
+    if (!(compare(z, x) || compare(x, z))) {
+      destroy_node(z);
+      return iterator(x);
+    }
+
+    while (x->value_) {
+      y = x;
+      if (compare(z, x)) x = x->left_;
+      else if (compare(x, z)) x = x->right_;
+      else return iterator(x);
+    }
+
+    z->parent_ = y;
+    if (compare(z, y)) y->left_ = z;
+    else y->right_ = z;
+
+    insert_fixup(z);
+
+    ++(this->size_);
+    update_anchor();
+
+    return iterator(z);
+  }
+
   template <typename InputIt>
   void insert(InputIt first, InputIt last) { for (; first != last; ++first) insert(*first); }
 
@@ -331,8 +370,66 @@ public:
     this->destroy_node(z);
   }
 
+  void erase(const_iterator pos) {
+    node* z = pos.node_;
+    node* y = z;
+    node* x;
+    char y_original_color = y->color_;
+
+    const_iterator new_begin = ++(this->begin());
+    const_iterator new_end = ----(this->end());
+
+    if (!z->left_->value_) {
+      x = z->right_;
+      this->transplant_node(z, z->right_);
+    } else if (!z->right_->value_) {
+      x = z->left_;
+      this->transplant_node(z, z->left_);
+    } else {
+      y = (--pos).node_;
+      y_original_color = y->color_;
+      x = y->left_;
+
+      if (y->parent_ != z) {
+        this->transplant_node(y, y->left_);
+        y->left_ = z->left_;
+        y->left_->parent_ = y;
+      } else x->parent_ = y;
+
+      this->transplant_node(z, y);
+      y->right_ = z->right_;
+      y->right_->parent_ = y;
+      y->color_ = z->color_;
+    }
+
+
+    if (y_original_color == kRBTreeColorBlack) this->delete_fixup(x);
+
+    if (z == this->anchor_->right_) {
+      this->anchor_->right_ = new_begin.node_;
+      new_begin.node_->left_ = this->anchor_;
+    }
+
+    if (z == this->anchor_->left_) {
+      this->anchor_->left_ = new_end.node_;
+      new_end.node_->right_ = this->anchor_;
+    }
+
+    --this->size_;
+    this->destroy_node(z);
+  }
+
   void erase(iterator first, iterator last) {
     iterator temp;
+    while (first != last) {
+      temp = first;
+      ++first;
+      this->erase(temp);
+    }
+  }
+
+  void erase(const_iterator first, const_iterator last) {
+    const_iterator temp;
     while (first != last) {
       temp = first;
       ++first;
