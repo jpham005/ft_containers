@@ -8,14 +8,40 @@
 #include "utility.hpp"
 
 namespace ft {
-  /*
-  ======================================================================================================================
-  vector
-  ======================================================================================================================
-  */
-
   template <typename T, typename Allocator = std::allocator<T> >
   class vector {
+  private:
+
+    template <typename Value, typename Pointer, typename Reference>
+    class vector_iterator {
+    private:
+      friend class vector;
+      friend class vector_iterator<Value, const Value*, const Value&>;
+      typedef vector_iterator<Value, Pointer, Reference>  iterator;
+
+    public:
+      typedef std::random_access_iterator_tag iterator_category;
+      typedef Value                           value_type;
+      typedef std::ptrdiff_t                  difference_type;
+      typedef Pointer                         pointer;
+      typedef Reference                       reference;
+
+      vector_iterator() : ptr_(NULL) {}
+      explicit vector_iterator(pointer ptr) : ptr_(ptr) {}
+      vector_iterator(const iterator& other) : ptr_(other.ptr_) {}
+      vector_iterator& operator=(const iterator& other) { ptr_ = other.ptr_; return *this; }
+      ~vector_iterator() {};
+
+      reference operator*() const { return *ptr_; }
+      pointer operator->() const { return ptr_; }
+
+      vector_iterator&  operator++() { ++ptr_; return *this; }
+      vector_iterator operator++(int) { pointer temp = ptr_++; return iterator(temp); } // TODO
+
+    private:
+      pointer ptr_;
+    };
+
   public:
     typedef T                                         value_type;
     typedef Allocator                                 allocator_type;
