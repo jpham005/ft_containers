@@ -27,7 +27,7 @@ namespace ft {
       typedef Reference                       reference;
 
       vector_iterator() : ptr_(NULL) {}
-      explicit vector_iterator(pointer ptr) : ptr_(ptr) {}
+      explicit vector_iterator(pointer const& ptr) : ptr_(ptr) {}
       vector_iterator(const iterator& other) : ptr_(other.ptr_) {}
       vector_iterator& operator=(const iterator& other) { ptr_ = other.ptr_; return *this; }
       ~vector_iterator() {};
@@ -35,8 +35,16 @@ namespace ft {
       reference operator*() const { return *ptr_; }
       pointer operator->() const { return ptr_; }
 
-      vector_iterator&  operator++() { ++ptr_; return *this; }
-      vector_iterator operator++(int) { pointer temp = ptr_++; return iterator(temp); } // TODO
+      iterator&  operator++() { ++ptr_; return *this; }
+      iterator operator++(int) { pointer temp = ptr_++; return iterator(temp); }
+      iterator& operator+=(difference_type n) { ptr_ += n; return *this; }
+      friend iterator operator+(const iterator& iter, difference_type n) { iterator temp(iter); return temp += n; }
+
+      iterator&  operator--() { --ptr_; return *this; }
+      iterator operator--(int) { pointer temp = ptr_--; return iterator(temp); }
+      iterator& operator-=(difference_type n) { ptr_ -= n; return *this; }
+      iterator operator-(difference_type n) { iterator temp(*this); return temp -= n; }
+
 
     private:
       pointer ptr_;
@@ -58,7 +66,7 @@ namespace ft {
 
     vector() : alloc_(allocator_type()), cap_(0), begin_(NULL), end_(NULL) {}
 
-    explicit vector(const allocator_type& alloc) : alloc_(alloc()), cap_(0), begin_(NULL), end_(NULL) {}
+    explicit vector(const allocator_type& alloc) : alloc_(alloc), cap_(0), begin_(NULL), end_(NULL) {}
 
     explicit vector(
       size_type count,
@@ -159,11 +167,11 @@ namespace ft {
     =============================================================================
      */
 
-    iterator begin() throw() { return this->begin_; }
-    const_iterator begin() const throw() { return this->begin_; }
+    iterator begin() throw() { return iterator(this->begin_); }
+    const_iterator begin() const throw() { return const_iterator(this->begin_); }
 
-    iterator end() throw() { return this->end_; }
-    const_iterator end() const throw() { return this->end_; }
+    iterator end() throw() { return iterator(this->end_); }
+    const_iterator end() const throw() { return const_iterator(this->end_); }
 
     reverse_iterator rbegin() throw() { return reverse_iterator(this->end_); }
     const_reverse_iterator rbegin() const throw() { return const_reverse_iterator(this->end_); }

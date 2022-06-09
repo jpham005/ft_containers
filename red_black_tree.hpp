@@ -60,7 +60,7 @@ private:
     typedef Pointer                                 pointer;
 
     rbtree_iterator() : node_(NULL) {};
-    explicit rbtree_iterator(node_type* node) : node_(node) {}
+    explicit rbtree_iterator(node_type* const node) : node_(node) {}
     rbtree_iterator(const iterator& other) : node_(other.node_) {}
     rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; }
     ~rbtree_iterator() {}

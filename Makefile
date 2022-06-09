@@ -7,7 +7,7 @@ CLASS       :=
 INTERFACE   :=
 TEMPLATE    :=  pair red_black_tree
 
-SRCS        :=  set_test.cpp $(addsuffix .cpp, $(CLASS))
+SRCS        :=  vector_test.cpp $(addsuffix .cpp, $(CLASS))
 OBJS        :=  $(SRCS:.cpp=.o)
 
 INCLUDES    :=  $(addsuffix .hpp, $(CLASS)) $(addsuffix .hpp, $(INTERFACE)) \
