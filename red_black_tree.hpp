@@ -1,96 +1,98 @@
 #pragma once
-#include <iostream> //TODO
 #include <functional>
 
 #include "iterator.hpp"
 #include "utility.hpp"
+
+enum RBTreeColor {
+  kRBTreeColorRed,
+  kRBTreeColorBlack
+};
+
+template <typename Value>
+struct rbtree_node {
+  Value*        value_;
+  rbtree_node*  right_;
+  rbtree_node*  left_;
+  rbtree_node*  parent_;
+  char          color_;
+};
+
+template <typename T, typename Pointer, typename Reference>
+class rbtree_iterator {
+private:
+  template <typename Key, typename Value, typename ExtractKey, typename Compare, typename Allocator>
+  friend class rbtree;
+  friend class rbtree_iterator<T, const T*, const T&>;
+  typedef rbtree_iterator<T, T*, T&>              iterator;
+  typedef rbtree_node<T>                          node_type;
+
+  node_type* get_next_node(node_type* curr) {
+    if (curr->right_->value_) {
+      curr = curr->right_;
+      while (curr->parent_->value_ && curr->left_->value_) curr = curr->left_;
+      return curr;
+    }
+
+    while (curr->parent_->value_ && curr != curr->parent_->left_) curr = curr->parent_;
+    return curr->parent_;
+  }
+
+  node_type* get_prev_node(node_type* curr) {
+    if (curr->left_->value_) {
+      curr = curr->left_;
+      while (curr->right_->value_) curr = curr->right_;
+      return curr;
+    }
+
+    while (curr->parent_->value_ && curr != curr->parent_->right_) curr = curr->parent_;
+    return curr->parent_;
+  }
+  node_type* node_;
+
+public:
+  typedef std::bidirectional_iterator_tag         iterator_category;
+  typedef ptrdiff_t                               difference_type;
+  typedef T                                       value_type;
+  typedef Reference                               reference;
+  typedef Pointer                                 pointer;
+
+  rbtree_iterator() : node_(NULL) {};
+  explicit rbtree_iterator(node_type* const node) : node_(node) {}
+  rbtree_iterator(const iterator& other) : node_(other.node_) {}
+  rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; }
+
+  reference operator*() const { return *(this->node_->value_); }
+  pointer operator->() const { return this->node_->value_; }
+
+  rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return *this; }
+  rbtree_iterator operator++(int) {
+    node_type* temp = this->node_;
+    this->node_ = get_next_node(this->node_);
+    return rbtree_iterator(temp);
+  }
+
+  rbtree_iterator& operator--() { this->node_ = get_prev_node(this->node_); return *this; }
+  rbtree_iterator operator--(int) {
+    node_type* temp = this->node_;
+    this->node_ = get_prev_node(this->node_);
+    return rbtree_iterator(temp);
+  }
+
+  friend bool operator==(const rbtree_iterator& it1, const rbtree_iterator& it2) {
+    return it1.node_ == it2.node_;
+  }
+
+  friend bool operator!=(const rbtree_iterator& it1, const rbtree_iterator& it2) {
+    return !(it1 == it2);
+  }
+};
 
 template <
   typename Key, typename Value, typename ExtractKey,
   typename Compare = std::less<Key>, typename Allocator = std::allocator<Value>
 >
 class rbtree {
-private:
-  enum RBTreeColor { kRBTreeColorRed, kRBTreeColorBlack };
-
-  struct rbtree_node {
-    Value*        value_;
-    rbtree_node*  right_;
-    rbtree_node*  left_;
-    rbtree_node*  parent_;
-    char          color_;
-  };
-
-  template <typename T, typename Pointer, typename Reference>
-  class rbtree_iterator {
-  private:
-    friend class rbtree;
-    friend class rbtree_iterator<T, const Pointer, const Reference>;
-    typedef rbtree_iterator<T, T*, T&>              iterator;
-    typedef rbtree_node                             node_type;
-
-    node_type* get_next_node(node_type* curr) {
-      if (curr->right_->value_) {
-        curr = curr->right_;
-        while (curr->parent_->value_ && curr->left_->value_) curr = curr->left_;
-        return curr;
-      }
-
-      while (curr->parent_->value_ && curr != curr->parent_->left_) curr = curr->parent_;
-      return curr->parent_;
-    }
-
-    node_type* get_prev_node(node_type* curr) {
-      if (curr->left_->value_) {
-        curr = curr->left_;
-        while (curr->right_->value_) curr = curr->right_;
-        return curr;
-      }
-
-      while (curr->parent_->value_ && curr != curr->parent_->right_) curr = curr->parent_;
-      return curr->parent_;
-    }
-    node_type* node_;
-
-  public:
-    typedef std::bidirectional_iterator_tag         iterator_category;
-    typedef ptrdiff_t                               difference_type;
-    typedef T                                       value_type;
-    typedef Reference                               reference;
-    typedef Pointer                                 pointer;
-
-    rbtree_iterator() : node_(NULL) {};
-    explicit rbtree_iterator(node_type* const node) : node_(node) {}
-    rbtree_iterator(const iterator& other) : node_(other.node_) {}
-    rbtree_iterator& operator=(const iterator& other) { this->node_ = other.node_; return *this; }
-    ~rbtree_iterator() {}
-
-    reference operator*() const { return *(this->node_->value_); }
-    pointer operator->() const { return this->node_->value_; }
-
-    rbtree_iterator& operator++() { this->node_ = get_next_node(this->node_); return *this; }
-    rbtree_iterator operator++(int) { // TODO
-      node_type* temp = this->node_;
-      this->node_ = get_next_node(this->node_);
-      return iterator(temp);
-    }
-
-    rbtree_iterator& operator--() { this->node_ = get_prev_node(this->node_); return *this; }
-    rbtree_iterator operator--(int) {
-      node_type* temp = this->node_;
-      this->node_ = get_prev_node(this->node_);
-      return iterator(temp);
-    }
-
-    friend bool operator==(const rbtree_iterator& it1, const rbtree_iterator& it2) {
-      return it1.node_ == it2.node_;
-    }
-
-    friend bool operator!=(const rbtree_iterator& it1, const rbtree_iterator& it2) {
-      return !(it1 == it2);
-    }
-  };
-
 public:
   typedef Key                                                         key_type;
   typedef Value                                                       value_type;
@@ -102,7 +104,7 @@ public:
   typedef const value_type&                                           const_reference;
   typedef typename Allocator::pointer                                 pointer;
   typedef typename Allocator::const_pointer                           const_pointer;
-  typedef rbtree_node                                                 node;
+  typedef rbtree_node<value_type>                                     node;
   typedef rbtree_iterator<value_type, pointer, reference>             iterator;
   typedef rbtree_iterator<value_type, const_pointer, const_reference> const_iterator;
   typedef ft::reverse_iterator<iterator>                              reverse_iterator;
@@ -121,7 +123,6 @@ private:
   size_type           size_;
 
 public:
-  node* getnode() { return root_; } // TODO
   rbtree()
     : allocator_(), node_allocator_(), extractor_(),
       comparator_(), nil_(init_nil()), root_(this->nil_), anchor_(init_nil()), size_(0) {}
@@ -188,7 +189,7 @@ public:
 
   size_type max_size() const throw() {
     return std::numeric_limits<difference_type>::max(), std::numeric_limits<size_type>::max()
-      / (sizeof(node) + sizeof(value_type));
+                                                        / (sizeof(node) + sizeof(value_type));
   }
 
   /*
@@ -539,16 +540,6 @@ public:
   */
 
   key_compare key_comp() const { return this->comparator_; }
-
-  void test_print(node* nd, std::string str) { // TODO
-    if (!nd->value_){
-      std::cout << "end" << std::endl;
-      return;
-    }
-    std::cout << str << ", " << nd->value_->first << ", " << static_cast<int>(nd->color_) << std::endl;
-    test_print(nd->left_, "left");
-    test_print(nd->right_, "right");
-  }
 
 private:
   node* init_node(const_reference value) {

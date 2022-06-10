@@ -10,46 +10,6 @@
 namespace ft {
   template <typename T, typename Allocator = std::allocator<T> >
   class vector {
-  private:
-
-    template <typename Value, typename Pointer, typename Reference>
-    class vector_iterator {
-    private:
-      friend class vector;
-      friend class vector_iterator<Value, const Value*, const Value&>;
-      typedef vector_iterator<Value, Pointer, Reference>  iterator;
-
-    public:
-      typedef std::random_access_iterator_tag iterator_category;
-      typedef Value                           value_type;
-      typedef std::ptrdiff_t                  difference_type;
-      typedef Pointer                         pointer;
-      typedef Reference                       reference;
-
-      vector_iterator() : ptr_(NULL) {}
-      explicit vector_iterator(pointer const& ptr) : ptr_(ptr) {}
-      vector_iterator(const iterator& other) : ptr_(other.ptr_) {}
-      vector_iterator& operator=(const iterator& other) { ptr_ = other.ptr_; return *this; }
-      ~vector_iterator() {};
-
-      reference operator*() const { return *ptr_; }
-      pointer operator->() const { return ptr_; }
-
-      iterator&  operator++() { ++ptr_; return *this; }
-      iterator operator++(int) { pointer temp = ptr_++; return iterator(temp); }
-      iterator& operator+=(difference_type n) { ptr_ += n; return *this; }
-      friend iterator operator+(const iterator& iter, difference_type n) { iterator temp(iter); return temp += n; }
-
-      iterator&  operator--() { --ptr_; return *this; }
-      iterator operator--(int) { pointer temp = ptr_--; return iterator(temp); }
-      iterator& operator-=(difference_type n) { ptr_ -= n; return *this; }
-      iterator operator-(difference_type n) { iterator temp(*this); return temp -= n; }
-
-
-    private:
-      pointer ptr_;
-    };
-
   public:
     typedef T                                         value_type;
     typedef Allocator                                 allocator_type;
@@ -57,8 +17,8 @@ namespace ft {
     typedef typename allocator_type::const_reference  const_reference;
     typedef typename allocator_type::pointer          pointer;
     typedef typename allocator_type::const_pointer    const_pointer;
-    typedef pointer                                   iterator;
-    typedef const_pointer                             const_iterator;
+    typedef T*                                        iterator;
+    typedef const T*                                  const_iterator;
     typedef ft::reverse_iterator<iterator>            reverse_iterator;
     typedef ft::reverse_iterator<const_iterator>      const_reverse_iterator;
     typedef typename std::ptrdiff_t                   difference_type;
@@ -173,11 +133,11 @@ namespace ft {
     iterator end() throw() { return iterator(this->end_); }
     const_iterator end() const throw() { return const_iterator(this->end_); }
 
-    reverse_iterator rbegin() throw() { return reverse_iterator(this->end_); }
-    const_reverse_iterator rbegin() const throw() { return const_reverse_iterator(this->end_); }
+    reverse_iterator rbegin() throw() { return reverse_iterator(iterator(this->end_)); }
+    const_reverse_iterator rbegin() const throw() { return const_reverse_iterator(const_iterator(this->end_)); }
 
-    reverse_iterator rend() throw() { return reverse_iterator(this->begin_); }
-    const_reverse_iterator rend() const throw() { return const_reverse_iterator(this->end_); }
+    reverse_iterator rend() throw() { return reverse_iterator(iterator(this->begin_)); }
+    const_reverse_iterator rend() const throw() { return const_reverse_iterator(const_itearator(this->end_)); }
 
     /*
     =============================================================================

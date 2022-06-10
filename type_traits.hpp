@@ -23,33 +23,68 @@ namespace ft {
     static const bool value = sizeof(test(T())) == 1;
   };
 
-//  template <typename T, T v>
-//  struct integral_constant {
-//    typedef T                           value_type;
-//    typedef ft::integral_constant<T, v> type;
-//
-//    static const T value = v;
-//    operator value_type() const throw() { return value; }
-//  };
-//
-//  int a = integral_constant<int, 1>();
-//
-//  template <>
-//  struct integral_constant<bool, true> {
-//    typedef ft::integral_constant<bool, true> true_type;
-//
-//    static const bool value = true;
-//  };
-//
-//  template <>
-//  struct integral_constant<bool, false> {
-//    typedef ft::integral_constant<bool, false> false_type;
-//
-//    static const bool value = false;
-//  };
-//
-//  template <typename T>
-//  struct is_integral : public ft::integral_constant<T, > {
-//
-//  };
+  struct true_type { const static bool value = true; };
+  struct false_type { const static bool value = false; };
+
+  template <typename T>
+  struct remove_const { typedef T type; };
+
+  template <typename T>
+  struct remove_const<const T> { typedef T type; };
+
+  template <typename T>
+  struct remove_volatile { typedef T type; };
+
+  template <typename T>
+  struct remove_volatile<volatile T> { typedef T type; };
+
+  template <typename T>
+  struct remove_const_volatile {
+    typedef typename ft::remove_volatile<typename ft::remove_const<T>::type>::type type;
+  };
+
+  template <typename T>
+  struct is_integral_impl : ft::false_type {};
+
+  template <>
+  struct is_integral_impl<bool> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<char> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<signed char> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<unsigned char> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<char16_t> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<char32_t> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<wchar_t> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<short> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<unsigned short> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<int> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<unsigned int> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<long> : ft::true_type {};
+
+  template <>
+  struct is_integral_impl<unsigned long> : ft::true_type {};
+
+  template <typename T>
+  struct is_integral : ft::is_integral_impl<typename ft::remove_const_volatile<T>::type> {};
 }

@@ -215,50 +215,34 @@ template	<typename Tp>
 void	receive_vector(NS::vector<Tp>) {}
 #include <vector>
 
-class jaham {
-public:
-  int* a;
-  int* get() { return a; }
-
-  int* operator++() {}
-};
-
 int	main()
 {
-  int b = 6;
-  register int* c = &b;
-  ++c;
-  int* d(c);
-  c->operator++();
-  jaham j;
-  j.a = &b;
-  ++j.a;
-  ++j.get();
+	vecInt	i4(4);
+	vecInt	i7(7);
 
-  vecStr	vec(1, "4");
+	fill_int(i4, 0, 4);
+	fill_int(i7, 7, 3);
 
-  vec.push_back("abababab");
-  vec.push_back("123123123123123123123");
-  vec.push_back("1234123412341234123412341234123412341234124");
+	vecInt::iterator	it_7b = i7.begin();
+	vecInt::iterator	it_7e = i7.end();
+	print_it(it_7b, it_7e);
 
-  std::vector<int> origin;
-  (++(++origin.begin()));
+	vecInt::const_iterator	cit_7b = i7.begin();
+	vecInt::const_iterator	cit_7e = i7.end();
+	print_it(cit_7b, cit_7e);
 
-  ft::vector<int> my;
-  ++(my.begin()); // rvalue cant use primitive operator (func call), struct(operator overloaded),
+	vecInt::reverse_iterator	rit_4b = i4.rbegin();
+	vecInt::reverse_iterator	rit_4e = i4.rend();
+	print_it(rit_4b, rit_4e);
 
-  std::cout << vec.begin()->c_str() << '\n';
-  (vec.begin())->operator++()
-  std::cout << (++(*vec.begin()))->c_str() << '\n';
+	vecInt::const_reverse_iterator	crit_4b = i4.rbegin();
+	vecInt::const_reverse_iterator	crit_4e = i4.rend();
+	print_it(crit_4b, crit_4e);
 
-  vecStr::const_iterator	cit = --vec.end();
-  vecStr::const_reverse_iterator	crit = vec.rbegin();
+	print_it(it_7b, cit_7e); // iterator and const_iterator should be comparable
+	print_it(rit_4b, crit_4e); // this also applys to reverse iterators
+	print_it(cit_7b, it_7e);
+	print_it(crit_4b, rit_4e);
 
-  std::cout << (cit->capacity() == (crit++)->capacity()) << '\n';
-  std::cout << ((*(--cit)).capacity() == (*crit).capacity()) << '\n';
-  std::cout << (cit->get_allocator() == (*crit).get_allocator()) << '\n';
-  std::cout << *cit << *crit << '\n';
-
-  return (0);
+	return (0);
 }
-
